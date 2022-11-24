@@ -1,0 +1,212 @@
+// depends on eip-4200
+
+#define constant G1_GEN_X = 0
+#define constant G1_GEN_Y = INPUT_X + 1
+#define constant G1_GEN_Z = INPUT_Y + 1
+#define constant OUTPUT_X = G1_GEN_Z + 1
+#define constant OUTPUT_Y = OUTPUT_X + 1
+#define constant OUTPUT_Z = OUTPUT_Y + 1
+
+#define constant SCRATCH_POINT_X = OUTPUT_Z + 1
+#define constant SCRATCH_POINT_Y = SCRATCH_POINT_X + 1
+#define constant SCRATCH_POINT_Z = SCRATCH_POINT_Y + 1
+
+#define constant TEMP_SLOT_0 = SCRATCH_POINT_Z + 1
+#define constant TEMP_SLOT_1 = TEMP_SLOT_0 + 1
+#define constant TEMP_SLOT_2 = TEMP_SLOT_1 + 1
+#define constant TEMP_SLOT_3 = TEMP_SLOT_2 + 1
+
+#define constant G1_GEN_Z_OFFSET = 96
+
+// OUTPUT_X <- OUTPUT_X / OUTPUT_Z
+// OUTPUT_Y <- OUTPUT_Y / OUTPUT_Z
+#define macro ToAffine() = takes(0) returns(0) {
+    INVMOD_OUTPUT_Z()
+    __mulmontx(OUTPUT_X, OUTPUT_X, OUTPUT_Z)
+    __mulmontx(OUTPUT_Y, OUTPUT_Y, OUTPUT_Z)
+}
+
+#define macro InfCheck() = takes(0) returns(0) {
+    // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
+    //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
+    OUTPUT_X_SLOT_OFFSET
+    __submodx(TEMP_5, OUTPUT_X, OUTPUT_Z)
+    $TEMP_SLOT_5_OFFSET
+    mload
+    $TEMP_SLOT_5_OFFSET_PLUS_32
+    mload
+    0xffffffffffffffffffffffffffffffff
+    0x00
+    eq
+    dup2
+    0x00
+    eq
+    eq
+    //stack: TEMP_SLOT_5 == 0
+
+    // TODO check OUTPUT_Y != 0
+    // ...
+    // stack: OUTPUT_Y != 0, TEMP_SLOT_5 == 0
+    eq 
+    not
+    end jumpi
+
+    // it's the infinity point, return (0, 0) as per eip 2537
+    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
+    __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
+
+    OUTPUT_X_OFFSET
+    0x60 // 96
+    return
+end:
+}
+
+// OUTPUT_SLOT <- OUTPUT_SLOT * 2
+#define macro DoubleStep() = takes(0) returns(0) {
+    __mulmontx(TEMP_SLOT_0, INPUT_SLOT_Y, INPUT_SLOT_Y)
+    __addmodx(OUTPUT_SLOT_Z, TEMP_SLOT_0, TEMP_SLOT_0)
+    __addmodx(OUTPUT_SLOT_Z, OUTPUT_SLOT_Z, OUTPUT_SLOT_Z)
+    __mulmontx(TEMP_SLOT_1, INPUT_SLOT_Y, INPUT_SLOT_Z)
+    __mulmontx(TEMP_SLOT_2, INPUT_SLOT_Z, INPUT_SLOT_Z)
+    __mulmontx(TEMP_SLOT_12, TEMP_SLOT_12, VAL_SLOT_12)
+    __mulmontx(OUTPUT_SLOT_X, TEMP_SLOT_2, OUTPUT_SLOT_Z)
+    __mulmontx(OUTPUT_SLOT_Y, TEMP_SLOT_0, TEMP_SLOT_2)
+    __mulmontx(OUTPUT_SLOT_Z, TEMP_SLOT_1, OUTPUT_SLOT_Z)
+    __addmodx(TEMP_SLOT_1, TEMP_SLOT_2, TEMP_SLOT_2)
+    __addmodx(TEMP_SLOT_2, TEMP_SLOT_1, TEMP_SLOT_2)
+    __submodx(TEMP_SLOT_0, TEMP_SLOT_0, TEMP_SLOT_2)
+    __mulmontx(OUTPUT_SLOT_Y, TEMP_SLOT_0, OUTPUT_SLOT_Y)
+    __addmodx(OUTPUT_SLOT_Y, OUTPUT_SLOT_X, OUTPUT_SLOT_Y)
+    __mulmontx(TEMP_SLOT_1, INPUT_SLOT_X, INPUT_SLOT_Y)
+    __mulmontx(OUTPUT_SLOT_X, TEMP_SLOT_0, TEMP_SLOT_1)
+    __addmodx(OUTPUT_SLOT_x, OUTPUT_SLOT_X, OUTPUT_SLOT_X)
+}
+
+#define function Double() = takes(0) returns(0) {
+    DoubleStep()
+}
+
+#define function AddAndDouble() = takes(0) returns(0) {
+    AddStep()
+    DoubleStep()
+}
+
+#define function AddAndDoubleWithInfCheck() = takes(0) returns(0) {
+    AddStep()
+    DoubleStep()
+    InfCheck()
+}
+
+#define MulBy12_TEMP_2() = takes(0) returns(0) {
+    // TODO compute this with multiplication
+    __addmodx(TEMP_5, TEMP_2, TEMP_2)
+    __addmodx(TEMP_5, TEMP_5, TEMP_5)
+    __addmodx(TEMP_2, TEMP_5, TEMP_5) 
+    __addmodx(TEMP_2, TEMP_2, TEMP_5) 
+}
+
+#define MulBy12_OUTPUT_TEMP_Y() = takes(0) returns(0) {
+    // TODO compute this with multiplication
+    __addmodx(TEMP_5, OUTPUT_TEMP_Y, OUTPUT_TEMP_Y)
+    __addmodx(TEMP_5, TEMP_5, TEMP_5)
+    __addmodx(OUTPUT_TEMP_Y, TEMP_5, TEMP_5) 
+    __addmodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP_5) 
+}
+
+// OUTPUT_SLOT <- OUTPUT_SLOT + TEMP_POINT_SLOT
+#define macro AddStep() = takes(0) returns(0) {
+
+    // do the addition putting the output in OUTPUT_TEMP_X, OUTPUT_TEMP_Y, OUTPUT_TEMP_Z
+    __mulmontx(TEMP_SLOT_0, OUTPUT_X, TEMP_POINT_X)
+    __mulmontx(TEMP_SLOT_1, OUTPUT_Y, TEMP_POINT_Y)
+    __mulmontx(TEMP_SLOT_2, OUTPUT_Z, TEMP_POINT_Z)
+    __addmodx(TEMP_SLOT_3, OUTPUT_X, OUTPUT_Y)
+    __addmodx(TEMP_4, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(TEMP_3, TEMP_3, TEMP_4)
+    __addmodx(TEMP_4, TEMP_0, TEMP_1)
+    __submodx(TEMP_3, TEMP_3, TEMP_4)
+    __addmodx(TEMP_4, TEMP_POINT_Y, TEMP_POINT_Z)
+    __addmodx(OUTPUT_TEMP_X, TEMP_POINT_Y, TEMP_POINT_Z)
+    __mulmontx(TEMP_4, TEMP_4, TEMP_3)
+    __addmodx(OUTPUT_TEMP_X, TEMP_0, TEMP_0)
+    __addmodx(TEMP_0, OUTPUT_TEMP_X, TEMP_0)
+    MulBy12_TEMP_2()
+    __addmodx(OUTPUT_TEMP_Z, TEMP_1, TEMP_2)
+    __submodx(TEMP_1, TEMP_1, TEMP_2)
+    MulBy12_OUTPUT_TEMP_Y()
+    __mulmontx(OUTPUT_TEMP_X, TEMP_4, OUTPUT_TEMP_Y)
+    __mulmontx(TEMP_2, TEMP_3, TEMP_1)
+    __submodx(OUTPUT_TEMP_X, TEMP_2, OUTPUT_TEMP_X)
+    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP_0)
+    __mulmontx(TEMP_1, TEMP_1, OUTPUT_Z)
+    __addmodx(OUTPUT_Y, TEMP_1, OUTPUT_Y)
+    __mulmontx(TEMP_0, TEMP_0, TEMP_3)
+    __mulmontx(OUTPUT_Z, OUTPUT_Z, TEMP_4)
+    __addmodx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP_0)
+    
+
+    // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
+    __addmodx(OUTPUT_X, OUTPUT_TEMP_X, ZERO_VAL)
+    __addmodx(OUTPUT_Y, OUTPUT_TEMP_Y, ZERO_VAL)
+    __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
+}
+
+#define macro G1Mul() = takes(1) returns(0) {
+    // load G1 generator x/y
+    0x00
+    0x00
+    0x60 // 96
+    calldatacopy
+    0x01
+    $G1_GEN_Z_OFFSET
+    mstore
+    __tomontx(G1_GEN_Z, G1_GEN_Z)
+
+    // see how big the scalar is
+    dup1
+    0x01
+{{ for i = 0; i < 255; i++ }}
+    byte
+    0x01
+    and
+
+    loop_body{{i}} rjumpi
+{{ end }}
+
+loop_start:
+{{ for i = 0; i < 255; i++ }}
+loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated bytecode
+
+    // cost = 22
+    shl
+    dup1
+    0x01
+    and
+    // is_lsb_1, scalar << 1
+    not
+    double_step_{{$i}} rjumpi
+
+    // TODO call add with rjump
+    // cost: push(ret_addr) + rjump + jumpi = 20
+    {{ if i == 254 }}
+        AddAndDoubleWithInfCheck()
+    {{ else }}
+        AddAndDouble()
+    {{ end }}
+    __rjump(loop_body{{i + 1}})
+
+double_step_{{$i}}:
+    // TODO call add with rjump
+    // cost: push(ret_addr) + rjump + jumpi = 20
+    Double()
+    {{ if i == 254 }}
+        InfCheck()
+    {{ end }}
+{{ end }}
+
+CONVERT_TO_AFFINE()
+
+// convert the output to montgomery
+__mulmontx(OUTPUT_X, OUTPUT_X, ONE_VAL)
+__mulmontx(OUTPUT_Y, OUTPUT_Y, ONE_VAL)
+}

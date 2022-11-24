@@ -1,7 +1,5 @@
 # Cost Estimates for BLS12-381 G1/G2 Add/Mul implemented with EVMMAX Opcodes
 
-I compare the implementation of simple double-and-add scalar multiplication 
-
 In this doc, I give an estimate of gas cost of BLS12-381 G1/G2 scalar multiplication and addition implemented in EVM using EVMMAX opcodes.  Because GLV method appears to require modular inverse (which I haven't implemented in Huff yet) I do full double-and-add.  I use benchmarks of several native implementations scaled to `30ns/gas` to provide a basis for comparison.
 
 of generic double-and-add scalar multiplication implemented using EVMMAX opcodes.
@@ -30,7 +28,7 @@ from Geth (TODO: why are these different?  why does Geth code have conditionals?
 
 ### Method
 
-Input to scalar mul is the curve sub-group order (`0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001`).  Binary representatino has 134 1s and 122 zeros (TODO double-check this).  This translates to `134 x (point_double + point_add) +  122 x point_double`.
+Chose the curve sub-group order (`0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001`).  Binary representatino has 134 1s and 122 zeros (TODO double-check this).  This translates to `134 x (point_double + point_add) +  122 x point_double`.
 
 #### Counts from zk-crypto/bls12-381
 
@@ -67,9 +65,12 @@ TODO:
 | fp2 add/sub | 0 | 0 | 2 | 0 |
 | fp2 double | 0 | 0 | 0 | 2 |
 
-### Cost Estimates
+### Best Cost Estimates
 
 #### G1Add Cost
+
+| Cost Model | 4/1 | 3/1 | 2/1 |
+| ---------- | --- | -- | -- |
 
 | Algorithm | Arithmetic Cost | Other EVM Overhead |
 | ---- | ---- | ---- |
@@ -162,6 +163,15 @@ check_input2:
     128
     shr
     0x0
+    eq
+    not
+    end_check_input jumpi
+
+    // sha3 version
+    $INPUT2_Z_OFFSET_LO
+    48
+    sha3
+    $known_hash_of_0x00....0
     eq
     not
     end_check_input jumpi
