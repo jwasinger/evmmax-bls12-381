@@ -86,14 +86,15 @@ end:
     DoubleStep()
 }
 
-#define function AddAndDouble() = takes(0) returns(0) {
-    AddStep()
+#define function DoubleAndAdd() = takes(0) returns(0) {
     DoubleStep()
+    AddStep()
 }
 
-#define function AddAndDoubleWithInfCheck() = takes(0) returns(0) {
-    AddStep()
+#define function DoubleAndAddWithInfCheck() = takes(0) returns(0) {
     DoubleStep()
+    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
+    AddStep()
     InfCheck()
 }
 
@@ -143,7 +144,6 @@ end:
     __mulmontx(TEMP_0, TEMP_0, TEMP_3)
     __mulmontx(OUTPUT_Z, OUTPUT_Z, TEMP_4)
     __addmodx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP_0)
-    
 
     // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
     __addmodx(OUTPUT_X, OUTPUT_TEMP_X, ZERO_VAL)
@@ -152,15 +152,36 @@ end:
 }
 
 #define macro G1Mul() = takes(1) returns(0) {
-    // load G1 generator x/y
+    // TODO embed G1 generator x/y (montgomery form) in the bytecode
     0x00
     0x00
     0x60 // 96
-    calldatacopy
+    codedatacopy
     0x01
     $G1_GEN_Z_OFFSET
     mstore
     __tomontx(G1_GEN_Z, G1_GEN_Z)
+
+    $G1_GEN_X_OFFSET
+    0x04
+    mstore
+
+    // g1_gen.y = 0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e928483446346b8ed00e1de5d5ea93e354abe706c
+    0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e92848344
+    $G1_GEN_Y_OFFSET
+    mstore
+
+    0x6346b8ed00e1de5d5ea93e354abe706c
+    $G1_GEN_Y_OFFSET_PLUS_32
+    mstore
+
+    $G1_GEN_Z_OFFSET
+    0x01
+    mstore
+
+    __tomontx(G1_GEN_X_OFFSET, G1_GEN_X_OFFSET)
+    __tomontx(G1_GEN_Y_OFFSET, G1_GEN_Y_OFFSET)
+    __tomontx(G1_GEN_Z_OFFSET, G1_GEN_Z_OFFSET)
 
     // see how big the scalar is
     dup1
@@ -189,9 +210,9 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     {{ if i == 254 }}
-        AddAndDoubleWithInfCheck()
+        DoubleAndAddWithInfCheck()
     {{ else }}
-        AddAndDouble()
+        DoubleAndAdd()
     {{ end }}
     __rjump(loop_body{{i + 1}})
 
@@ -206,7 +227,7 @@ double_step_{{$i}}:
 
 CONVERT_TO_AFFINE()
 
-// convert the output to montgomery
+// convert the output to canonical form
 __mulmontx(OUTPUT_X, OUTPUT_X, ONE_VAL)
 __mulmontx(OUTPUT_Y, OUTPUT_Y, ONE_VAL)
 }
