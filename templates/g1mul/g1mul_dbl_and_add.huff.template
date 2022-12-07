@@ -42,7 +42,7 @@
 #define macro InfCheck() = takes(0) returns(0) {
     // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
     //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
-    OUTPUT_X_SLOT_OFFSET
+    [OUTPUT_X_OFFSET]
     __submodx(TEMP5, OUTPUT_X, OUTPUT_Z)
     [TEMP5_OFFSET]
     mload
@@ -175,7 +175,7 @@ end:
     0x00
     0x00
     0x60 // 96
-    codedatacopy
+    calldatacopy
     0x01
     [G1_GEN_Z_OFFSET]
     mstore
@@ -250,7 +250,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     {% endif %}
 
     //TODO: __rjump(loop_body{{i + 1}})
-    {% if i == 255 %}
+    {% if i == 254 %}
         end jump
     {% else %}
         loop_body{{i + 1}} jump
