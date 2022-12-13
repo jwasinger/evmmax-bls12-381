@@ -24,6 +24,7 @@
 #define constant ZERO_VAL = 0x13
 
 #define constant G1_GEN_X_OFFSET = 0x00
+#define constant G1_GEN_X_OFFSET_PLUS_32 = 0x20
 #define constant G1_GEN_Y_OFFSET = 0x30
 #define constant G1_GEN_Y_OFFSET_PLUS_32 = 0x50
 #define constant G1_GEN_Z_OFFSET = 0x60
@@ -65,7 +66,7 @@
     not
     end jumpi
 
-    // it's the infinity point, return (0, 0) as per eip 2537
+    // it's the infinity point, return (0, 0) per eip 2537
     __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
     __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
 
@@ -168,27 +169,38 @@ end:
     __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
 }
 
+#define macro CONVERT_OUTPUT_TO_NORM() = takes(0) returns(0) {
+    __mulmontx(OUTPUT_X, OUTPUT_X, ONE_VAL)
+    __mulmontx(OUTPUT_Y, OUTPUT_Y, ONE_VAL)
+    __mulmontx(OUTPUT_Z, OUTPUT_Z, ONE_VAL) // TODO remove this after affine conversion is added in
+}
+
 #define macro MAIN() = takes(0) returns(0) {
-    // TODO load scalar from calldata as well
-    // ...
-    // TODO embed G1 generator x/y (montgomery form) in the bytecode
     0x00
-    0x00
-    0x60 // 96
-    calldatacopy
+    calldataload
+    //stack: scalar
+
     0x01
     [G1_GEN_Z_OFFSET]
     mstore
+    //stack: scalar
 
     [G1_GEN_Z_OFFSET]
     dup1
     tomontx
+    //stack: scalar
 
+    // g1_gen.x (normal form) = 0x8b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1
+    0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3ed
     [G1_GEN_X_OFFSET]
-    0x04
+    mstore
+    //stack: scalar
+
+    0xd03cc744a2888ae40caa232946c5e7e1
+    [G1_GEN_X_OFFSET_PLUS_32]
     mstore
 
-    // g1_gen.y = 0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e928483446346b8ed00e1de5d5ea93e354abe706c
+    // g1_gen.y (normal form) = 0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e928483446346b8ed00e1de5d5ea93e354abe706c
     0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e92848344
     [G1_GEN_Y_OFFSET]
     mstore
@@ -201,16 +213,17 @@ end:
     0x01
     mstore
 
-    [G1_GEN_X_OFFSET]
+    [G1_GEN_X]
     dup1
     tomontx
-    [G1_GEN_Y_OFFSET]
+    [G1_GEN_Y]
     dup1
     tomontx
-    [G1_GEN_Z_OFFSET]
+    [G1_GEN_Z]
     dup1
     tomontx
 
+    // TODO what is this offset ????
     [ONE_VAL_OFFSET_PLUS_16]
     0x01
     mstore
@@ -218,7 +231,7 @@ end:
     // see how big the scalar is
     dup1
     0x01
-{% for i in range(255) %}
+{% for i in range(1) %}
     byte
     0x01
     and
@@ -269,9 +282,10 @@ double_step_{{i}}:
 // CONVERT_TO_AFFINE()
 
 // convert the output to canonical form
-/*
 end:
-    __mulmontx(OUTPUT_X, OUTPUT_X, ONE_VAL)
-    __mulmontx(OUTPUT_Y, OUTPUT_Y, ONE_VAL)
-    */
+    CONVERT_OUTPUT_TO_NORM()
+
+    [OUTPUT_X_OFFSET]
+    0x90
+    return
 }
