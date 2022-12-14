@@ -176,41 +176,51 @@ end:
 }
 
 #define macro MAIN() = takes(0) returns(0) {
+    // set the modulus
+    0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f624
+    0x00
+    mstore
+    //stack:
+
+    0x1eabfffeb153ffffb9feffffffffaaab00000000000000000000000000000000
+    0x20
+    mstore
+    //stack:
+
+    0x06
+    0x00
+    setmodx
+    //stack:
+
+    // load the scalar input
     0x00
     calldataload
     //stack: scalar
 
-    0x01
-    [G1_GEN_Z_OFFSET]
-    mstore
-    //stack: scalar
-
-    [G1_GEN_Z_OFFSET]
-    dup1
-    tomontx
-    //stack: scalar
-
+    // set the G1 generator (TODO: embed this in the bytecode and copy it directly to the evmmax memory space)
     // g1_gen.x (normal form) = 0x8b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1
     0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3ed
     [G1_GEN_X_OFFSET]
     mstore
     //stack: scalar
 
-    0xd03cc744a2888ae40caa232946c5e7e1
+    0xd03cc744a2888ae40caa232946c5e7e100000000000000000000000000000000
     [G1_GEN_X_OFFSET_PLUS_32]
     mstore
+    //stack: scalar
 
     // g1_gen.y (normal form) = 0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e928483446346b8ed00e1de5d5ea93e354abe706c
     0x0a989badd40d6212b33cffc3f3763e9bc760f988c9926b26da9dd85e92848344
     [G1_GEN_Y_OFFSET]
     mstore
+    //stack: scalar
 
-    0x6346b8ed00e1de5d5ea93e354abe706c
+    0x6346b8ed00e1de5d5ea93e354abe706c00000000000000000000000000000000
     [G1_GEN_Y_OFFSET_PLUS_32]
     mstore
 
-    [G1_GEN_Z_OFFSET]
     0x01
+    [G1_GEN_Z_OFFSET]
     mstore
 
     [G1_GEN_X]
@@ -224,8 +234,8 @@ end:
     tomontx
 
     // TODO what is this offset ????
-    [ONE_VAL_OFFSET_PLUS_16]
     0x01
+    [ONE_VAL_OFFSET_PLUS_16]
     mstore
 
     // see how big the scalar is
