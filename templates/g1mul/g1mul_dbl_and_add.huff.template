@@ -22,6 +22,7 @@
 #define constant TEMP7 = 0x11
 
 #define constant ONE_VAL = 0x12
+#define constant ONE_VAL_OFFSET = 0x360
 #define constant ONE_VAL_OFFSET_PLUS_16 = 0x370
 #define constant VAL_12 = 0x13
 #define constant VAL_12_OFFSET = 0x390
@@ -120,11 +121,6 @@ end_inf:
     __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
 
     __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
-
-    0x30
-    0x1b0
-    return
-
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
@@ -141,6 +137,10 @@ end_inf:
     __mulmontx(TEMP1, TEMP_POINT_X, TEMP_POINT_Y)
     __mulmontx(OUTPUT_X, TEMP0, TEMP1)
     __addmodx(OUTPUT_X, OUTPUT_X, OUTPUT_X)
+
+    0x90
+    [OUTPUT_X_OFFSET]
+    return
 }
 
 #define fn Double() = takes(0) returns(0) {
@@ -157,12 +157,12 @@ end_inf:
     AddStep()
 }
 
-#define macro CopyG1GenToOutput() = takes(0) returns(0) {
+#define macro InitOutput() = takes(0) returns(0) {
     // copy g1_gen to where we construct the output
     // TODO, just place G1_gen in the output slot
-    __addmodx(OUTPUT_X, G1_GEN_X, ZERO_VAL)
-    __addmodx(OUTPUT_Y, G1_GEN_Y, ZERO_VAL)
-    __addmodx(OUTPUT_Z, G1_GEN_Z, ZERO_VAL)
+    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
+    __addmodx(OUTPUT_Y, ONE_VAL, ZERO_VAL)
+    __addmodx(OUTPUT_Z, ZERO_VAL, ZERO_VAL)
 }
 
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
@@ -292,6 +292,12 @@ end_inf:
     [G1_GEN_Z_OFFSET]
     mstore
 
+    // TODO we only need to compute mont(1) once.
+    // after: copying it elsewhere is cheaper
+    0x01
+    [ONE_VAL_OFFSET_PLUS_16]
+    mstore
+
     [G1_GEN_X]
     dup1
     tomontx
@@ -304,13 +310,12 @@ end_inf:
     [VAL_12]
     dup1
     tomontx
+    [ONE_VAL]
+    dup1
+    tomontx
 
-    CopyG1GenToOutput()
+    InitOutput()
 
-    // TODO what is this offset ????
-    0x01
-    [ONE_VAL_OFFSET_PLUS_16]
-    mstore
     //stack: scalar
 
     // strip off assumed-zero msb of the scalar
