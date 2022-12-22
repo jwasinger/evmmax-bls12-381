@@ -5,6 +5,8 @@
 #define constant OUTPUT_Y = 0x4
 #define constant OUTPUT_Z = 0x5
 
+// TODO remove unused range
+
 #define constant TEMP_POINT_X = 0x6
 #define constant TEMP_POINT_Y = 0x7
 #define constant TEMP_POINT_Z = 0x8
@@ -22,6 +24,7 @@
 #define constant ONE_VAL = 0x12
 #define constant ONE_VAL_OFFSET_PLUS_16 = 0x370
 #define constant VAL_12 = 0x13
+#define constant VAL_12_OFFSET = 0x390
 #define constant VAL_12_OFFSET_PLUS_16 = 0x3a0
 #define constant ZERO_VAL = 0x14
 
@@ -141,7 +144,20 @@ end_inf:
 
 #define fn DoubleAndAdd() = takes(0) returns(0) {
     DoubleStep()
+
+    [OUTPUT_X_OFFSET]
+    0x90
+    return
+
     AddStep()
+}
+
+#define macro CopyG1GenToOutput() = takes(0) returns(0) {
+    // copy g1_gen to where we construct the output
+    // TODO, just place G1_gen in the output slot
+    __addmodx(OUTPUT_X, G1_GEN_X, ZERO_VAL)
+    __addmodx(OUTPUT_Y, G1_GEN_Y, ZERO_VAL)
+    __addmodx(OUTPUT_Z, G1_GEN_Z, ZERO_VAL)
 }
 
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
@@ -220,8 +236,8 @@ end_inf:
     mstore
 
     // store the constant 12
-    [VAL_12_OFFSET_PLUS_16]
     0xc
+    [VAL_12_OFFSET_PLUS_16]
     mstore
 
     // set the modulus
@@ -284,6 +300,8 @@ end_inf:
     dup1
     tomontx
 
+    CopyG1GenToOutput()
+
     // TODO what is this offset ????
     0x01
     [ONE_VAL_OFFSET_PLUS_16]
@@ -334,9 +352,6 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     0x01
     shl
 
-    [OUTPUT_X_OFFSET]
-    0x90
-    return
 
     //TODO: __rjump(loop_body{{i + 1}})
     {% if i == 254 %}
