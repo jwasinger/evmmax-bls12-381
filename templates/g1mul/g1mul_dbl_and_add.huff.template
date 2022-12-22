@@ -127,7 +127,7 @@ end_inf:
     __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
     __mulmontx(TEMP2, TEMP2, VAL_12)
     __mulmontx(OUTPUT_X, TEMP2, OUTPUT_Z)
-    __mulmontx(OUTPUT_Y, TEMP0, TEMP2)
+    __addmodx(OUTPUT_Y, TEMP0, TEMP2)
     __mulmontx(OUTPUT_Z, TEMP1, OUTPUT_Z)
     __addmodx(TEMP1, TEMP2, TEMP2)
     __addmodx(TEMP2, TEMP1, TEMP2)
