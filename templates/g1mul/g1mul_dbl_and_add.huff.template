@@ -120,6 +120,11 @@ end_inf:
     __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
 
     __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
+
+    0x30
+    0x1b0
+    return
+
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
