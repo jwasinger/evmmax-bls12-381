@@ -21,7 +21,9 @@
 
 #define constant ONE_VAL = 0x12
 #define constant ONE_VAL_OFFSET_PLUS_16 = 0x370
-#define constant ZERO_VAL = 0x13
+#define constant VAL_12 = 0x13
+#define constant VAL_12_OFFSET_PLUS_16 = 0x3a0
+#define constant ZERO_VAL = 0x14
 
 #define constant G1_GEN_X_OFFSET = 0x00
 #define constant G1_GEN_X_OFFSET_PLUS_32 = 0x20
@@ -29,6 +31,11 @@
 #define constant G1_GEN_Y_OFFSET_PLUS_32 = 0x50
 #define constant G1_GEN_Z_OFFSET = 0x60
 #define constant OUTPUT_X_OFFSET = 0x90
+#define constant OUTPUT_X_OFFSET_PLUS_32 = 0xb0
+#define constant OUTPUT_Y_OFFSET = 0xc0
+#define constant OUTPUT_Y_OFFSET_PLUS_32 = 0xe0
+#define constant OUTPUT_Z_OFFSET = 0xf0
+#define constant OUTPUT_Z_OFFSET_PLUS_32 = 0x110
 #define constant TEMP5_OFFSET = 0x02d0
 #define constant TEMP5_OFFSET_PLUS_32 = 0x02f0
 
@@ -43,28 +50,54 @@
 #define macro InfCheck() = takes(0) returns(0) {
     // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
     //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
+
     [OUTPUT_X_OFFSET]
-    __submodx(TEMP5, OUTPUT_X, OUTPUT_Z)
-    [TEMP5_OFFSET]
     mload
-    [TEMP5_OFFSET_PLUS_32]
+    [OUTPUT_X_OFFSET_PLUS_32]
     mload
     0xffffffffffffffffffffffffffffffff
     and
-    0x0
+    // stack: OUTPUT_X (32 most significant bytes), OUTPUT_X (16 least significant bytes)
+    
+    0x00
     eq
-    dup2
-    0x0
     eq
-    eq
-    //stack: mem[TEMP5:TEMP5+48] == 0
 
-    // TODO check OUTPUT_Y != 0
-    // ...
-    // stack: OUTPUT_Y != 0, TEMP5 == 0
-    eq 
+    // stack: OUTPUT_X == 0
+
+    [OUTPUT_Z_OFFSET]
+    mload
+    [OUTPUT_Z_OFFSET_PLUS_32]
+    mload
+    0xffffffffffffffffffffffffffffffff
+    and
+    // stack: OUTPUT_Z (32 most significant bytes), OUTPUT_Z (16 least significant bytes)
+    
+    0x00
+    eq
+    eq
+
+    eq
+    // stack: OUTPUT_X == OUTPUT_Z == 0
+
+    [OUTPUT_Y_OFFSET]
+    mload
+    [OUTPUT_Y_OFFSET_PLUS_32]
+    mload
+    0xffffffffffffffffffffffffffffffff
+    and
+    // stack: OUTPUT_Y (32 most significant bytes), OUTPUT_Y (16 least significant bytes)
+
+    0x00
+    eq
+    eq
     not
-    end jumpi
+    // stack: OUTPUT_Y != 0, OUTPUT_X == OUTPUT_Z == 0
+
+    eq
+    // TODO is the below still the case?
+    // huff bug here:  doesn't place jumpdest op at end_if label
+    end_inf jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537
     __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
@@ -73,17 +106,22 @@
     [OUTPUT_X_OFFSET]
     0x60 // 96
     return
-end:
+end_inf:
 }
 
 // OUTPUT_SLOT <- OUTPUT_SLOT * 2
 #define macro DoubleStep() = takes(0) returns(0) {
-    __mulmontx(TEMP0, INPUT_Y, INPUT_Y)
+    // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
+    __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
+    __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
+    __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
+
+    __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
-    __mulmontx(TEMP1, INPUT_Y, INPUT_Z)
-    __mulmontx(TEMP2, INPUT_Z, INPUT_Z)
-    __mulmontx(TEMP12, TEMP12, VAL_12)
+    __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
+    __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
+    __mulmontx(TEMP2, TEMP2, VAL_12)
     __mulmontx(OUTPUT_X, TEMP2, OUTPUT_Z)
     __mulmontx(OUTPUT_Y, TEMP0, TEMP2)
     __mulmontx(OUTPUT_Z, TEMP1, OUTPUT_Z)
@@ -92,7 +130,7 @@ end:
     __submodx(TEMP0, TEMP0, TEMP2)
     __mulmontx(OUTPUT_Y, TEMP0, OUTPUT_Y)
     __addmodx(OUTPUT_Y, OUTPUT_X, OUTPUT_Y)
-    __mulmontx(TEMP1, INPUT_X, INPUT_Y)
+    __mulmontx(TEMP1, TEMP_POINT_X, TEMP_POINT_Y)
     __mulmontx(OUTPUT_X, TEMP0, TEMP1)
     __addmodx(OUTPUT_X, OUTPUT_X, OUTPUT_X)
 }
@@ -141,7 +179,7 @@ end:
     __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
     __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
     __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
-    __mulmontx(TEMP3, TEMP3, TEMP_4)
+    __mulmontx(TEMP3, TEMP3, TEMP4)
     __addmodx(TEMP4, TEMP0, TEMP1)
     __submodx(TEMP3, TEMP3, TEMP4)
     __addmodx(TEMP4, TEMP_POINT_Y, TEMP_POINT_Z)
@@ -176,6 +214,16 @@ end:
 }
 
 #define macro MAIN() = takes(0) returns(0) {
+    // allocate all the memory we will use
+    0x00
+    0x03c0
+    mstore
+
+    // store the constant 12
+    [VAL_12_OFFSET_PLUS_16]
+    0xc
+    mstore
+
     // set the modulus
     0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f624
     0x00
@@ -232,35 +280,46 @@ end:
     [G1_GEN_Z]
     dup1
     tomontx
+    [VAL_12]
+    dup1
+    tomontx
 
     // TODO what is this offset ????
     0x01
     [ONE_VAL_OFFSET_PLUS_16]
     mstore
+    //stack: scalar
+
+    // strip off assumed-zero msb of the scalar
+    0x01
+    shl
+
+    // TODO: fail explicitly when a user provides a scalar that is larger than 255 bits
 
     // see how big the scalar is
+{% for i in range(255) %}
     dup1
-    0x01
-{% for i in range(1) %}
-    byte
+    0xfe
+    shr
     0x01
     and
 
     //TODO loop_body{{i}} rjumpi
     loop_body{{i}} jumpi
+
+    0x01 shl
 {% endfor %}
 
 // main loop
 {% for i in range(255) %}
 loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated bytecode
 
-    // cost = 22
-    shl
     dup1
-    0x01
-    and
-    // is_lsb_1, scalar << 1
-    not
+    0xfe
+    shr
+    0x00
+    eq
+    // is_msb_0, scalar
     // TODO: double_step_{{i}} rjumpi
     double_step_{{i}} jumpi
 
@@ -271,6 +330,13 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     {% else %}
         DoubleAndAdd()
     {% endif %}
+
+    0x01
+    shl
+
+    [OUTPUT_X_OFFSET]
+    0x90
+    return
 
     //TODO: __rjump(loop_body{{i + 1}})
     {% if i == 254 %}
