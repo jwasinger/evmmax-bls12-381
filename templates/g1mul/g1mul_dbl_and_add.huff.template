@@ -108,7 +108,7 @@
     __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
     __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
 
-    0x1 // 96
+    0x60 // 96 = 48 * 2 == (0,0)
     [OUTPUT_X_OFFSET]
     return
 end_inf:
@@ -159,9 +159,9 @@ end_inf:
 
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
     DoubleStep()
-    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
+    //InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
     AddStep()
-    InfCheck()
+    //InfCheck()
 }
 
 // OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
@@ -174,6 +174,9 @@ end_inf:
     __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
+
+    //0x90 [OUTPUT_X_OFFSET] return
+    //0x90 0x120 return
 
     __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
     __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
@@ -363,7 +366,7 @@ double_step_{{i}}:
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
     {% if i == 254 %}
-        InfCheck()
+        //InfCheck()
     {% endif %}
 
     // shift-out the top bit of the scalar
