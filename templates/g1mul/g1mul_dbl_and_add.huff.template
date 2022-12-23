@@ -52,6 +52,11 @@
     __mulmontx(OUTPUT_Y, OUTPUT_Y, OUTPUT_Z)
 }
 
+#define macro InfCheckSetZero() = takes(0) returns(0) {
+    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
+    __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
+}
+
 #define macro InfCheck() = takes(0) returns(0) {
     // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
     //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
@@ -60,10 +65,10 @@
     mload
     [OUTPUT_X_OFFSET_PLUS_32]
     mload
-    0xffffffffffffffffffffffffffffffff
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
     // stack: OUTPUT_X (32 most significant bytes), OUTPUT_X (16 least significant bytes)
-    
+
     0x00
     eq
     eq
@@ -74,7 +79,7 @@
     mload
     [OUTPUT_Z_OFFSET_PLUS_32]
     mload
-    0xffffffffffffffffffffffffffffffff
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
     // stack: OUTPUT_Z (32 most significant bytes), OUTPUT_Z (16 least significant bytes)
     
@@ -87,31 +92,34 @@
 
     [OUTPUT_Y_OFFSET]
     mload
+
     [OUTPUT_Y_OFFSET_PLUS_32]
     mload
-    0xffffffffffffffffffffffffffffffff
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
     // stack: OUTPUT_Y (32 most significant bytes), OUTPUT_Y (16 least significant bytes)
 
+    or
     0x00
-    eq
-    eq
-    not
+    swap1
+    gt
+
     // stack: OUTPUT_Y != 0, OUTPUT_X == OUTPUT_Z == 0
 
     eq
     // TODO is the below still the case?
     // huff bug here:  doesn't place jumpdest op at end_if label
-    end_inf jumpi
+    end1 jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537
-    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
-    __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
+    // TODO: huff bug that causes jumpdests to get messed up when evmmax
+    // ops are in the same macro
+    InfCheckSetZero()
 
     0x60 // 96 = 48 * 2 == (0,0)
     [OUTPUT_X_OFFSET]
     return
-end_inf:
+end1:
 }
 
 // OUTPUT_SLOT <- OUTPUT_SLOT * 2
@@ -159,9 +167,9 @@ end_inf:
 
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
     DoubleStep()
-    //InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
+    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
     AddStep()
-    //InfCheck()
+    InfCheck()
 }
 
 // OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
@@ -366,7 +374,7 @@ double_step_{{i}}:
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
     {% if i == 254 %}
-        //InfCheck()
+        InfCheck()
     {% endif %}
 
     // shift-out the top bit of the scalar
