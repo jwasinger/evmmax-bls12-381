@@ -164,22 +164,6 @@ end_inf:
     InfCheck()
 }
 
-#define macro MulBy12_TEMP_2() = takes(0) returns(0) {
-    // TODO compute this with multiplication
-    __addmodx(TEMP5, TEMP2, TEMP2)
-    __addmodx(TEMP5, TEMP5, TEMP5)
-    __addmodx(TEMP2, TEMP5, TEMP5) 
-    __addmodx(TEMP2, TEMP2, TEMP5) 
-}
-
-#define macro MulBy12_OUTPUT_TEMP_Y() = takes(0) returns(0) {
-    // TODO compute this with multiplication
-    __addmodx(TEMP5, OUTPUT_TEMP_Y, OUTPUT_TEMP_Y)
-    __addmodx(TEMP5, TEMP5, TEMP5)
-    __addmodx(OUTPUT_TEMP_Y, TEMP5, TEMP5) 
-    __addmodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP5) 
-}
-
 // OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
 #define constant OUTPUT_TEMP_X = 0xf // TEMP5
 #define constant OUTPUT_TEMP_Y = 0x10 // TEMP6
@@ -191,38 +175,9 @@ end_inf:
     __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
 
-
-    // do the addition putting the output in OUTPUT_TEMP_X, OUTPUT_TEMP_Y, OUTPUT_TEMP_Z
     __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
     __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
     __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
-
-    // return OUTPUT_*
-    /*
-    0x90
-    0x90
-    return
-    */
-
-    /*
-    0x90
-    0x120
-    return
-    */
-
-    /*
-    0x90
-    0x00
-    return
-    */
-
-    /*
-    //return TEMP0,1,2
-    0x90
-    0x1b0
-    return
-    */
-
     __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
     __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
     __mulmontx(TEMP3, TEMP3, TEMP4)
@@ -230,13 +185,13 @@ end_inf:
     __submodx(TEMP3, TEMP3, TEMP4)
     __addmodx(TEMP4, OUTPUT_Y, OUTPUT_Z)
     __addmodx(OUTPUT_TEMP_X, TEMP_POINT_Y, TEMP_POINT_Z)
-    __mulmontx(TEMP4, TEMP4, TEMP3)
+    __mulmontx(TEMP4, TEMP4, OUTPUT_TEMP_X)
     __addmodx(OUTPUT_TEMP_X, TEMP1, TEMP2)
-    __submodx(TEMP4, TEMP4, OUTPUT_Z)
+    __submodx(TEMP4, TEMP4, OUTPUT_TEMP_X)
     __addmodx(OUTPUT_TEMP_X, OUTPUT_X, OUTPUT_Z)
-    __addmodx(OUTPUT_TEMP_Y, TEMP_POINT_X, TEMP_POINT_Z)
+    __addmodx(OUTPUT_TEMP_Y, TEMP_POINT_X, TEMP_POINT_Y)
     __mulmontx(OUTPUT_TEMP_X, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
-    __mulmontx(OUTPUT_TEMP_Y, TEMP0, TEMP2)
+    __addmodx(OUTPUT_TEMP_Y, TEMP0, TEMP2)
     __submodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
     __addmodx(OUTPUT_TEMP_X, TEMP0, TEMP0)
     __addmodx(TEMP0, OUTPUT_TEMP_X, TEMP0)
@@ -259,8 +214,8 @@ end_inf:
     __addmodx(OUTPUT_Y, OUTPUT_TEMP_Y, ZERO_VAL)
     __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
 
-    0x30
-    0x30
+    0x90
+    0x90
     return
 }
 
