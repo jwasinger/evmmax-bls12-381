@@ -168,6 +168,7 @@ end1:
 
 #define fn DoubleAndAddWithInfCheckDebug() = takes(0) returns(0) {
     DoubleStep()
+    0x90 0x90 return
     InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
     AddStep()
     InfCheck()
