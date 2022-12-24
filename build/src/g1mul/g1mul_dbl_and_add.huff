@@ -128,8 +128,10 @@ end1:
     __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
+
     __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
+    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
     __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
@@ -164,7 +166,16 @@ end1:
     __addmodx(OUTPUT_Z, ZERO_VAL, ZERO_VAL)
 }
 
+#define fn DoubleAndAddWithInfCheckDebug() = takes(0) returns(0) {
+    DoubleStep()
+    0x90 0x90 return
+    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
+    AddStep()
+    InfCheck()
+}
+
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
+    0x900 0x90 return
     DoubleStep()
     InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
     AddStep()
@@ -177,6 +188,57 @@ end1:
 #define constant OUTPUT_TEMP_Z = 0x11 // TEMP7
 // OUTPUT_SLOT <- OUTPUT_SLOT + TEMP_POINT_SLOT
 #define macro AddStep() = takes(0) returns(0) {
+    // copy G1_GEN into TEMP_POINT_(x/y/z)
+    __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
+    __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
+    __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
+    __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
+    __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
+    __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
+    __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
+
+    __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(TEMP3, TEMP3, TEMP4)
+    __addmodx(TEMP4, TEMP0, TEMP1)
+    __submodx(TEMP3, TEMP3, TEMP4)
+    __addmodx(TEMP4, OUTPUT_Y, OUTPUT_Z)
+    __addmodx(OUTPUT_TEMP_X, TEMP_POINT_Y, TEMP_POINT_Z)
+    __mulmontx(TEMP4, TEMP4, OUTPUT_TEMP_X)
+    __addmodx(OUTPUT_TEMP_X, TEMP1, TEMP2)
+    __submodx(TEMP4, TEMP4, OUTPUT_TEMP_X)
+    __addmodx(OUTPUT_TEMP_X, OUTPUT_X, OUTPUT_Z)
+    __addmodx(OUTPUT_TEMP_Y, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(OUTPUT_TEMP_X, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
+    __addmodx(OUTPUT_TEMP_Y, TEMP0, TEMP2)
+    __submodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
+    __addmodx(OUTPUT_TEMP_X, TEMP0, TEMP0)
+    __addmodx(TEMP0, OUTPUT_TEMP_X, TEMP0)
+    __mulmontx(TEMP2, TEMP2, VAL_12)
+    __addmodx(OUTPUT_TEMP_Z, TEMP1, TEMP2)
+    __submodx(TEMP1, TEMP1, TEMP2)
+    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, VAL_12)
+    __mulmontx(OUTPUT_TEMP_X, TEMP4, OUTPUT_TEMP_Y)
+    __mulmontx(TEMP2, TEMP3, TEMP1)
+    __submodx(OUTPUT_TEMP_X, TEMP2, OUTPUT_TEMP_X)
+    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP0)
+    __mulmontx(TEMP1, TEMP1, OUTPUT_TEMP_Z)
+    __addmodx(OUTPUT_TEMP_Y, TEMP1, OUTPUT_TEMP_Y)
+    __mulmontx(TEMP0, TEMP0, TEMP3)
+    __mulmontx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP4)
+    __addmodx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP0)
+
+    // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
+    __addmodx(OUTPUT_X, OUTPUT_TEMP_X, ZERO_VAL)
+    __addmodx(OUTPUT_Y, OUTPUT_TEMP_Y, ZERO_VAL)
+    __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
+}
+
+// OUTPUT_SLOT <- OUTPUT_SLOT + TEMP_POINT_SLOT
+#define macro AddStepDebug() = takes(0) returns(0) {
+    0x90
+    0x90
+    return
+
     // copy G1_GEN into TEMP_POINT_(x/y/z)
     __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
@@ -3159,6 +3221,7 @@ double_step_0:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3196,6 +3259,7 @@ double_step_1:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3233,6 +3297,7 @@ double_step_2:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3270,6 +3335,7 @@ double_step_3:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3307,6 +3373,7 @@ double_step_4:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3344,6 +3411,7 @@ double_step_5:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3381,6 +3449,7 @@ double_step_6:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3418,6 +3487,7 @@ double_step_7:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3455,6 +3525,7 @@ double_step_8:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3492,6 +3563,7 @@ double_step_9:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3529,6 +3601,7 @@ double_step_10:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3566,6 +3639,7 @@ double_step_11:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3603,6 +3677,7 @@ double_step_12:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3640,6 +3715,7 @@ double_step_13:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3677,6 +3753,7 @@ double_step_14:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3714,6 +3791,7 @@ double_step_15:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3751,6 +3829,7 @@ double_step_16:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3788,6 +3867,7 @@ double_step_17:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3825,6 +3905,7 @@ double_step_18:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3862,6 +3943,7 @@ double_step_19:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3899,6 +3981,7 @@ double_step_20:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3936,6 +4019,7 @@ double_step_21:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -3973,6 +4057,7 @@ double_step_22:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4010,6 +4095,7 @@ double_step_23:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4047,6 +4133,7 @@ double_step_24:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4084,6 +4171,7 @@ double_step_25:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4121,6 +4209,7 @@ double_step_26:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4158,6 +4247,7 @@ double_step_27:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4195,6 +4285,7 @@ double_step_28:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4232,6 +4323,7 @@ double_step_29:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4269,6 +4361,7 @@ double_step_30:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4306,6 +4399,7 @@ double_step_31:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4343,6 +4437,7 @@ double_step_32:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4380,6 +4475,7 @@ double_step_33:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4417,6 +4513,7 @@ double_step_34:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4454,6 +4551,7 @@ double_step_35:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4491,6 +4589,7 @@ double_step_36:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4528,6 +4627,7 @@ double_step_37:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4565,6 +4665,7 @@ double_step_38:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4602,6 +4703,7 @@ double_step_39:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4639,6 +4741,7 @@ double_step_40:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4676,6 +4779,7 @@ double_step_41:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4713,6 +4817,7 @@ double_step_42:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4750,6 +4855,7 @@ double_step_43:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4787,6 +4893,7 @@ double_step_44:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4824,6 +4931,7 @@ double_step_45:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4861,6 +4969,7 @@ double_step_46:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4898,6 +5007,7 @@ double_step_47:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4935,6 +5045,7 @@ double_step_48:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -4972,6 +5083,7 @@ double_step_49:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5009,6 +5121,7 @@ double_step_50:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5046,6 +5159,7 @@ double_step_51:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5083,6 +5197,7 @@ double_step_52:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5120,6 +5235,7 @@ double_step_53:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5157,6 +5273,7 @@ double_step_54:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5194,6 +5311,7 @@ double_step_55:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5231,6 +5349,7 @@ double_step_56:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5268,6 +5387,7 @@ double_step_57:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5305,6 +5425,7 @@ double_step_58:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5342,6 +5463,7 @@ double_step_59:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5379,6 +5501,7 @@ double_step_60:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5416,6 +5539,7 @@ double_step_61:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5453,6 +5577,7 @@ double_step_62:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5490,6 +5615,7 @@ double_step_63:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5527,6 +5653,7 @@ double_step_64:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5564,6 +5691,7 @@ double_step_65:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5601,6 +5729,7 @@ double_step_66:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5638,6 +5767,7 @@ double_step_67:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5675,6 +5805,7 @@ double_step_68:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5712,6 +5843,7 @@ double_step_69:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5749,6 +5881,7 @@ double_step_70:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5786,6 +5919,7 @@ double_step_71:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5823,6 +5957,7 @@ double_step_72:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5860,6 +5995,7 @@ double_step_73:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5897,6 +6033,7 @@ double_step_74:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5934,6 +6071,7 @@ double_step_75:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -5971,6 +6109,7 @@ double_step_76:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6008,6 +6147,7 @@ double_step_77:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6045,6 +6185,7 @@ double_step_78:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6082,6 +6223,7 @@ double_step_79:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6119,6 +6261,7 @@ double_step_80:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6156,6 +6299,7 @@ double_step_81:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6193,6 +6337,7 @@ double_step_82:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6230,6 +6375,7 @@ double_step_83:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6267,6 +6413,7 @@ double_step_84:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6304,6 +6451,7 @@ double_step_85:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6341,6 +6489,7 @@ double_step_86:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6378,6 +6527,7 @@ double_step_87:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6415,6 +6565,7 @@ double_step_88:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6452,6 +6603,7 @@ double_step_89:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6489,6 +6641,7 @@ double_step_90:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6526,6 +6679,7 @@ double_step_91:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6563,6 +6717,7 @@ double_step_92:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6600,6 +6755,7 @@ double_step_93:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6637,6 +6793,7 @@ double_step_94:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6674,6 +6831,7 @@ double_step_95:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6711,6 +6869,7 @@ double_step_96:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6748,6 +6907,7 @@ double_step_97:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6785,6 +6945,7 @@ double_step_98:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6822,6 +6983,7 @@ double_step_99:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6859,6 +7021,7 @@ double_step_100:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6896,6 +7059,7 @@ double_step_101:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6933,6 +7097,7 @@ double_step_102:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -6970,6 +7135,7 @@ double_step_103:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7007,6 +7173,7 @@ double_step_104:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7044,6 +7211,7 @@ double_step_105:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7081,6 +7249,7 @@ double_step_106:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7118,6 +7287,7 @@ double_step_107:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7155,6 +7325,7 @@ double_step_108:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7192,6 +7363,7 @@ double_step_109:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7229,6 +7401,7 @@ double_step_110:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7266,6 +7439,7 @@ double_step_111:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7303,6 +7477,7 @@ double_step_112:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7340,6 +7515,7 @@ double_step_113:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7377,6 +7553,7 @@ double_step_114:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7414,6 +7591,7 @@ double_step_115:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7451,6 +7629,7 @@ double_step_116:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7488,6 +7667,7 @@ double_step_117:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7525,6 +7705,7 @@ double_step_118:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7562,6 +7743,7 @@ double_step_119:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7599,6 +7781,7 @@ double_step_120:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7636,6 +7819,7 @@ double_step_121:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7673,6 +7857,7 @@ double_step_122:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7710,6 +7895,7 @@ double_step_123:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7747,6 +7933,7 @@ double_step_124:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7784,6 +7971,7 @@ double_step_125:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7821,6 +8009,7 @@ double_step_126:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7858,6 +8047,7 @@ double_step_127:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7895,6 +8085,7 @@ double_step_128:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7932,6 +8123,7 @@ double_step_129:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -7969,6 +8161,7 @@ double_step_130:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8006,6 +8199,7 @@ double_step_131:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8043,6 +8237,7 @@ double_step_132:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8080,6 +8275,7 @@ double_step_133:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8117,6 +8313,7 @@ double_step_134:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8154,6 +8351,7 @@ double_step_135:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8191,6 +8389,7 @@ double_step_136:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8228,6 +8427,7 @@ double_step_137:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8265,6 +8465,7 @@ double_step_138:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8302,6 +8503,7 @@ double_step_139:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8339,6 +8541,7 @@ double_step_140:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8376,6 +8579,7 @@ double_step_141:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8413,6 +8617,7 @@ double_step_142:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8450,6 +8655,7 @@ double_step_143:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8487,6 +8693,7 @@ double_step_144:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8524,6 +8731,7 @@ double_step_145:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8561,6 +8769,7 @@ double_step_146:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8598,6 +8807,7 @@ double_step_147:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8635,6 +8845,7 @@ double_step_148:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8672,6 +8883,7 @@ double_step_149:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8709,6 +8921,7 @@ double_step_150:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8746,6 +8959,7 @@ double_step_151:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8783,6 +8997,7 @@ double_step_152:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8820,6 +9035,7 @@ double_step_153:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8857,6 +9073,7 @@ double_step_154:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8894,6 +9111,7 @@ double_step_155:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8931,6 +9149,7 @@ double_step_156:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -8968,6 +9187,7 @@ double_step_157:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9005,6 +9225,7 @@ double_step_158:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9042,6 +9263,7 @@ double_step_159:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9079,6 +9301,7 @@ double_step_160:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9116,6 +9339,7 @@ double_step_161:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9153,6 +9377,7 @@ double_step_162:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9190,6 +9415,7 @@ double_step_163:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9227,6 +9453,7 @@ double_step_164:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9264,6 +9491,7 @@ double_step_165:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9301,6 +9529,7 @@ double_step_166:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9338,6 +9567,7 @@ double_step_167:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9375,6 +9605,7 @@ double_step_168:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9412,6 +9643,7 @@ double_step_169:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9449,6 +9681,7 @@ double_step_170:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9486,6 +9719,7 @@ double_step_171:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9523,6 +9757,7 @@ double_step_172:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9560,6 +9795,7 @@ double_step_173:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9597,6 +9833,7 @@ double_step_174:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9634,6 +9871,7 @@ double_step_175:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9671,6 +9909,7 @@ double_step_176:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9708,6 +9947,7 @@ double_step_177:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9745,6 +9985,7 @@ double_step_178:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9782,6 +10023,7 @@ double_step_179:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9819,6 +10061,7 @@ double_step_180:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9856,6 +10099,7 @@ double_step_181:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9893,6 +10137,7 @@ double_step_182:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9930,6 +10175,7 @@ double_step_183:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -9967,6 +10213,7 @@ double_step_184:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10004,6 +10251,7 @@ double_step_185:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10041,6 +10289,7 @@ double_step_186:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10078,6 +10327,7 @@ double_step_187:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10115,6 +10365,7 @@ double_step_188:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10152,6 +10403,7 @@ double_step_189:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10189,6 +10441,7 @@ double_step_190:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10226,6 +10479,7 @@ double_step_191:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10263,6 +10517,7 @@ double_step_192:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10300,6 +10555,7 @@ double_step_193:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10337,6 +10593,7 @@ double_step_194:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10374,6 +10631,7 @@ double_step_195:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10411,6 +10669,7 @@ double_step_196:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10448,6 +10707,7 @@ double_step_197:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10485,6 +10745,7 @@ double_step_198:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10522,6 +10783,7 @@ double_step_199:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10559,6 +10821,7 @@ double_step_200:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10596,6 +10859,7 @@ double_step_201:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10633,6 +10897,7 @@ double_step_202:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10670,6 +10935,7 @@ double_step_203:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10707,6 +10973,7 @@ double_step_204:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10744,6 +11011,7 @@ double_step_205:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10781,6 +11049,7 @@ double_step_206:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10818,6 +11087,7 @@ double_step_207:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10855,6 +11125,7 @@ double_step_208:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10892,6 +11163,7 @@ double_step_209:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10929,6 +11201,7 @@ double_step_210:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -10966,6 +11239,7 @@ double_step_211:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11003,6 +11277,7 @@ double_step_212:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11040,6 +11315,7 @@ double_step_213:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11077,6 +11353,7 @@ double_step_214:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11114,6 +11391,7 @@ double_step_215:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11151,6 +11429,7 @@ double_step_216:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11188,6 +11467,7 @@ double_step_217:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11225,6 +11505,7 @@ double_step_218:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11262,6 +11543,7 @@ double_step_219:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11299,6 +11581,7 @@ double_step_220:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11336,6 +11619,7 @@ double_step_221:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11373,6 +11657,7 @@ double_step_222:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11410,6 +11695,7 @@ double_step_223:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11447,6 +11733,7 @@ double_step_224:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11484,6 +11771,7 @@ double_step_225:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11521,6 +11809,7 @@ double_step_226:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11558,6 +11847,7 @@ double_step_227:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11595,6 +11885,7 @@ double_step_228:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11632,6 +11923,7 @@ double_step_229:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11669,6 +11961,7 @@ double_step_230:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11706,6 +11999,7 @@ double_step_231:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11743,6 +12037,7 @@ double_step_232:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11780,6 +12075,7 @@ double_step_233:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11817,6 +12113,7 @@ double_step_234:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11854,6 +12151,7 @@ double_step_235:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11891,6 +12189,7 @@ double_step_236:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11928,6 +12227,7 @@ double_step_237:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -11965,6 +12265,7 @@ double_step_238:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12002,6 +12303,7 @@ double_step_239:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12039,6 +12341,7 @@ double_step_240:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12076,6 +12379,7 @@ double_step_241:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12113,6 +12417,7 @@ double_step_242:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12150,6 +12455,7 @@ double_step_243:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12187,6 +12493,7 @@ double_step_244:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12224,6 +12531,7 @@ double_step_245:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12261,6 +12569,7 @@ double_step_246:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12298,6 +12607,7 @@ double_step_247:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12335,6 +12645,7 @@ double_step_248:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12372,6 +12683,7 @@ double_step_249:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12409,6 +12721,7 @@ double_step_250:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12446,6 +12759,7 @@ double_step_251:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12483,6 +12797,7 @@ double_step_252:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12520,6 +12835,7 @@ double_step_253:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
 
     // shift-out the top bit of the scalar
@@ -12541,7 +12857,7 @@ loop_body254: // this doesn't actually have to be a jumpdest in the generated by
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     
-        DoubleAndAddWithInfCheck()
+        DoubleAndAddWithInfCheckDebug()
     
 
     // shift-out the top bit of the scalar
@@ -12557,6 +12873,7 @@ double_step_254:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     
         InfCheck()
     

@@ -128,8 +128,10 @@ end1:
     __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
+
     __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
+    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
     __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
     __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
@@ -164,7 +166,15 @@ end1:
     __addmodx(OUTPUT_Z, ZERO_VAL, ZERO_VAL)
 }
 
+#define fn DoubleAndAddWithInfCheckDebug() = takes(0) returns(0) {
+    DoubleStep()
+    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
+    AddStep()
+    InfCheck()
+}
+
 #define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
+    0x900 0x90 return
     DoubleStep()
     InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
     AddStep()
@@ -177,6 +187,57 @@ end1:
 #define constant OUTPUT_TEMP_Z = 0x11 // TEMP7
 // OUTPUT_SLOT <- OUTPUT_SLOT + TEMP_POINT_SLOT
 #define macro AddStep() = takes(0) returns(0) {
+    // copy G1_GEN into TEMP_POINT_(x/y/z)
+    __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
+    __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
+    __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
+    __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
+    __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
+    __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
+    __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
+
+    __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(TEMP3, TEMP3, TEMP4)
+    __addmodx(TEMP4, TEMP0, TEMP1)
+    __submodx(TEMP3, TEMP3, TEMP4)
+    __addmodx(TEMP4, OUTPUT_Y, OUTPUT_Z)
+    __addmodx(OUTPUT_TEMP_X, TEMP_POINT_Y, TEMP_POINT_Z)
+    __mulmontx(TEMP4, TEMP4, OUTPUT_TEMP_X)
+    __addmodx(OUTPUT_TEMP_X, TEMP1, TEMP2)
+    __submodx(TEMP4, TEMP4, OUTPUT_TEMP_X)
+    __addmodx(OUTPUT_TEMP_X, OUTPUT_X, OUTPUT_Z)
+    __addmodx(OUTPUT_TEMP_Y, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(OUTPUT_TEMP_X, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
+    __addmodx(OUTPUT_TEMP_Y, TEMP0, TEMP2)
+    __submodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
+    __addmodx(OUTPUT_TEMP_X, TEMP0, TEMP0)
+    __addmodx(TEMP0, OUTPUT_TEMP_X, TEMP0)
+    __mulmontx(TEMP2, TEMP2, VAL_12)
+    __addmodx(OUTPUT_TEMP_Z, TEMP1, TEMP2)
+    __submodx(TEMP1, TEMP1, TEMP2)
+    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, VAL_12)
+    __mulmontx(OUTPUT_TEMP_X, TEMP4, OUTPUT_TEMP_Y)
+    __mulmontx(TEMP2, TEMP3, TEMP1)
+    __submodx(OUTPUT_TEMP_X, TEMP2, OUTPUT_TEMP_X)
+    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP0)
+    __mulmontx(TEMP1, TEMP1, OUTPUT_TEMP_Z)
+    __addmodx(OUTPUT_TEMP_Y, TEMP1, OUTPUT_TEMP_Y)
+    __mulmontx(TEMP0, TEMP0, TEMP3)
+    __mulmontx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP4)
+    __addmodx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP0)
+
+    // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
+    __addmodx(OUTPUT_X, OUTPUT_TEMP_X, ZERO_VAL)
+    __addmodx(OUTPUT_Y, OUTPUT_TEMP_Y, ZERO_VAL)
+    __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
+}
+
+// OUTPUT_SLOT <- OUTPUT_SLOT + TEMP_POINT_SLOT
+#define macro AddStepDebug() = takes(0) returns(0) {
+    0x90
+    0x90
+    return
+
     // copy G1_GEN into TEMP_POINT_(x/y/z)
     __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
@@ -349,7 +410,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     {% if i == 254 %}
-        DoubleAndAddWithInfCheck()
+        DoubleAndAddWithInfCheckDebug()
     {% else %}
         DoubleAndAdd()
     {% endif %}
@@ -369,6 +430,7 @@ double_step_{{i}}:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
+
     {% if i == 254 %}
         InfCheck()
     {% endif %}
