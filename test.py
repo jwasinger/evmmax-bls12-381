@@ -21,8 +21,9 @@ def bench_geth(inp: str, code_file: str):
 def main():
     res = g1_gen()
 
-    inp = hex(SUBGROUP_ORDER)[2:]
-    #inp = "0x0000000000000000000000000000000000000000000000000000000000000001"
+    #inp = hex(SUBGROUP_ORDER)[2:]
+
+    inp = "0x0000000000000000000000000000000000000000000000000000000000000002"
     bench_geth(inp, "build/artifacts/g1mul/g1mul_dbl_and_add.hex")
     import pdb; pdb.set_trace()
     # TODO test g1mul(fq_order) == infinity point

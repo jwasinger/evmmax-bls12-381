@@ -154,7 +154,6 @@ end1:
 #define fn DoubleAndAdd() = takes(0) returns(0) {
     DoubleStep()
     AddStep()
-    0x90 0x90 return
 }
 
 #define macro InitOutput() = takes(0) returns(0) {
