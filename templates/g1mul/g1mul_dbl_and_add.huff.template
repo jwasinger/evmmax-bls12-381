@@ -128,7 +128,6 @@ end1:
     __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
-
     __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
     __addmodx(OUTPUT_Z, TEMP0, TEMP0)
     __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
@@ -155,6 +154,7 @@ end1:
 #define fn DoubleAndAdd() = takes(0) returns(0) {
     DoubleStep()
     AddStep()
+    0x90 0x90 return
 }
 
 #define macro InitOutput() = takes(0) returns(0) {
@@ -182,14 +182,11 @@ end1:
     __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
     __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
     __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
-
-    //0x90 [OUTPUT_X_OFFSET] return
-    //0x90 0x120 return
-
     __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
     __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
     __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
     __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
+
     __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
     __mulmontx(TEMP3, TEMP3, TEMP4)
     __addmodx(TEMP4, TEMP0, TEMP1)
