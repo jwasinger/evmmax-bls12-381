@@ -14,6 +14,7 @@ def bench_geth(inp: str, code_file: str):
 
     output = result.stdout.decode('utf-8')[2:-1]
     proj_point = (int(output[0:96], 16), int(output[96:192], 16), int(output[192:], 16))
+    import pdb; pdb.set_trace()
     z_inv = to_mont(fq_inv(to_norm(proj_point[2])))
     affine_point = (to_norm(fq_mul(proj_point[0], z_inv)), to_norm(fq_mul(proj_point[1], z_inv)))
     print("{}, {}".format(hex(affine_point[0]), hex(affine_point[1])))
@@ -21,9 +22,9 @@ def bench_geth(inp: str, code_file: str):
 def main():
     res = g1_gen()
 
-    #inp = hex(SUBGROUP_ORDER)[2:]
+    inp = hex(SUBGROUP_ORDER)
 
-    inp = "0x0000000000000000000000000000000000000000000000000000000000000003"
+    #inp = "0x0000000000000000000000000000000000000000000000000000000000000003"
     bench_geth(inp, "build/artifacts/g1mul/g1mul_dbl_and_add.hex")
     import pdb; pdb.set_trace()
     # TODO test g1mul(fq_order) == infinity point
