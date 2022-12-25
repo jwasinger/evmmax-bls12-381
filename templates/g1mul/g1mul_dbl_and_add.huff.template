@@ -307,8 +307,6 @@ end1:
 
     // TODO: fail explicitly when a user provides a scalar that is larger than 255 bits
 
-    // TODO: if scalar is 1, return the generator point
-
     // see how big the scalar is
 {% for i in range(255) %}
     dup1
@@ -362,13 +360,15 @@ double_step_{{i}}:
 
 {% endfor %}
 
-// TODO
-// CONVERT_TO_AFFINE()
+
 
 // convert the output to canonical form
 end:
     InfCheck()
     CONVERT_OUTPUT_TO_NORM()
+
+    // TODO
+    // CONVERT_TO_AFFINE()
 
     0x90
     [OUTPUT_X_OFFSET]
