@@ -161,13 +161,6 @@ end1:
     __addmodx(OUTPUT_Z, ZERO_VAL, ZERO_VAL)
 }
 
-#define fn DoubleAndAddWithInfCheck() = takes(0) returns(0) {
-    DoubleStep()
-    InfCheck() // TODO only need this (0,0) is a point on the curve. check if it is. 
-    AddStep()
-    InfCheck()
-}
-
 #define constant OUTPUT_TEMP_X = 0xf // TEMP5
 #define constant OUTPUT_TEMP_Y = 0x10 // TEMP6
 #define constant OUTPUT_TEMP_Z = 0x11 // TEMP7
@@ -344,11 +337,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
 
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
-    {% if i == 254 %}
-        DoubleAndAddWithInfCheck()
-    {% else %}
-        DoubleAndAdd()
-    {% endif %}
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -366,10 +355,6 @@ double_step_{{i}}:
     // cost: push(ret_addr) + rjump + jumpi = 20
     Double()
 
-    {% if i == 254 %}
-        InfCheck()
-    {% endif %}
-
     // shift-out the top bit of the scalar
     0x01
     shl
@@ -382,6 +367,7 @@ double_step_{{i}}:
 
 // convert the output to canonical form
 end:
+    InfCheck()
     CONVERT_OUTPUT_TO_NORM()
 
     0x90
