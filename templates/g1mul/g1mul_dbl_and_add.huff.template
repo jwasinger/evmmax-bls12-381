@@ -239,6 +239,7 @@ end1:
     mstore
     //stack:
 
+    0x00
     0x06
     0x00
     setmodx
@@ -359,8 +360,6 @@ double_step_{{i}}:
 
 
 {% endfor %}
-
-
 
 // convert the output to canonical form
 end:
