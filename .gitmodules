@@ -4,3 +4,6 @@
 [submodule "huff-rs"]
 	path = huff-rs
 	url = https://github.com/jwasinger/huff-rs
+[submodule "bls12_381"]
+	path = bls12_381
+	url = https://github.com/jwasinger/bls12_381
