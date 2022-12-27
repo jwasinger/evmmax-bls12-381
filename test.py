@@ -2,6 +2,20 @@ import os, subprocess
 
 from bls12_381 import g1_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont
 
+def pad_input(val):
+    if len(hex(val)) - 2 > 96:
+        raise Exception('val too big')
+    return "{0:0{1}x}".format(val,96)
+
+def pad_scalar(val):
+    if len(hex(val)) - 2 > 64:
+        raise Exception('val too big')
+
+    return "{0:0{1}x}".format(val,64)
+
+def encode_input(scalar, point):
+    return pad_scalar(scalar) + pad_input(point.x) + pad_input(point.y)
+
 def bench_geth(inp: str, code_file: str):
     geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
 
@@ -22,7 +36,8 @@ def bench_geth(inp: str, code_file: str):
 def main():
     res = g1_gen()
 
-    inp = hex(SUBGROUP_ORDER)
+    import pdb; pdb.set_trace()
+    inp = encode_input(SUBGROUP_ORDER, g1_gen())
 
     #inp = "0x0000000000000000000000000000000000000000000000000000000000000003"
     bench_geth(inp, "build/artifacts/g1mul/g1mul_dbl_and_add.hex")

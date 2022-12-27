@@ -52,6 +52,11 @@
     __mulmontx(OUTPUT_Y, OUTPUT_Y, OUTPUT_Z)
 }
 
+#define macro SetG1GenZTo1() = takes(0) returns(0) {
+    // set g1_gen_z = 1
+    __addmodx(G1_GEN_Z, ONE_VAL, ZERO_VAL)
+}
+
 #define macro InfCheckSetZero() = takes(0) returns(0) {
     __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
     __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
@@ -220,7 +225,7 @@ end1:
 #define macro MAIN() = takes(0) returns(0) {
     // allocate all the memory we will use
     0x00
-    0x03c0
+    0x03f0
     mstore
 
     // store the constant 12
@@ -250,31 +255,20 @@ end1:
     calldataload
     //stack: scalar
 
-    // set the G1 generator (TODO: embed this in the bytecode and copy it directly to the evmmax memory space)
-    // g1_gen.x (normal form) = 0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb
-    0x17f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac58
+    // copy the point (affine)
+    0x60
+    0x20
+    0x00
+    calldatacopy
+    //stack: scalar
+
     [G1_GEN_X_OFFSET]
-    mstore
-    //stack: scalar
+    dup1
+    tomontx
 
-    0x6c55e83ff97a1aeffb3af00adb22c6bb00000000000000000000000000000000
-    [G1_GEN_X_OFFSET_PLUS_32]
-    mstore
-
-    // g1_gen.y (normal form) = 0x8b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3edd03cc744a2888ae40caa232946c5e7e1
-    0x08b3f481e3aaa0f1a09e30ed741d8ae4fcf5e095d5d00af600db18cb2c04b3ed
     [G1_GEN_Y_OFFSET]
-    mstore
-    //stack: scalar
-
-    0xd03cc744a2888ae40caa232946c5e7e100000000000000000000000000000000
-    [G1_GEN_Y_OFFSET_PLUS_32]
-    mstore
-    //stack: scalar
-
-    0x01
-    [G1_GEN_Z_OFFSET_PLUS_16]
-    mstore
+    dup1
+    tomontx
 
     // TODO we only need to compute mont(1) once.
     // after: copying it elsewhere is cheaper
@@ -282,21 +276,11 @@ end1:
     [ONE_VAL_OFFSET_PLUS_16]
     mstore
 
-    [G1_GEN_X]
+    [ONE_VAL_OFFSET]
     dup1
     tomontx
-    [G1_GEN_Y]
-    dup1
-    tomontx
-    [G1_GEN_Z]
-    dup1
-    tomontx
-    [VAL_12]
-    dup1
-    tomontx
-    [ONE_VAL]
-    dup1
-    tomontx
+
+    SetG1GenZTo1()
 
     InitOutput()
 
