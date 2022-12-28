@@ -2,25 +2,26 @@ import os, subprocess, re
 
 from bls12_381 import g1_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont
 
+if False:
 # TODO pass cargo-path to this script
-cmd ="/home/jared/.cargo/bin/cargo bench -- G1Proj"
-result = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), "bls12_381"))
-if result.returncode != 0:
-    raise Exception("geth exec error: {}".format(result.stderr))
-res = re.search(r'^.*time:.*\[(.*)\]\\n', str(result.stdout)).groups()[0]
-res = res.split(' ')[0:2]
-if res[1] != '\\xc2\\xb5s':
-    raise Exception("unit should be microseconds")
+    cmd ="/home/jared/.cargo/bin/cargo bench -- G1Proj"
+    result = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), "bls12_381"))
+    if result.returncode != 0:
+        raise Exception("geth exec error: {}".format(result.stderr))
+    res = re.search(r'^.*time:.*\[(.*)\]\\n', str(result.stdout)).groups()[0]
+    res = res.split(' ')[0:2]
+    if res[1] != '\\xc2\\xb5s':
+        raise Exception("unit should be microseconds")
 
-rust_exec_time = round(float(res[0])) * 1000
+    rust_exec_time = round(float(res[0])) * 1000
 
-geth_cmd = "go test -run=^$ -bench=G1Mul"
-result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), 'go-ethereum/crypto/bls12381'))
-if result.returncode != 0:
-    raise Exception("geth exec error: {}".format(result.stderr))
+    geth_cmd = "go test -run=^$ -bench=G1Mul"
+    result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), 'go-ethereum/crypto/bls12381'))
+    if result.returncode != 0:
+        raise Exception("geth exec error: {}".format(result.stderr))
 
-result_stdout = str(result.stdout).replace('\\t', '')
-geth_exec_time = int(re.search(r'\\n.*BenchmarkG1Mul.* (.*) ns/op.*\\n', result_stdout).groups()[0])
+    result_stdout = str(result.stdout).replace('\\t', '')
+    geth_exec_time = int(re.search(r'\\n.*BenchmarkG1Mul.* (.*) ns/op.*\\n', result_stdout).groups()[0])
 
 # ---
 code_file = "build/artifacts/g1mul/g1mul_dbl_and_add.hex"
@@ -35,6 +36,8 @@ if result.returncode != 0:
 
 res = str(result.stderr)
 evmmax_exec_time = res.split('\\n')[1][17:]
+evmmax_gas_used = re.search(r'EVM gas used: *([0-9]*)\\n', res)
+import pdb; pdb.set_trace()
 
 if evmmax_exec_time.endswith('ms'):
     # convert from ms to ns

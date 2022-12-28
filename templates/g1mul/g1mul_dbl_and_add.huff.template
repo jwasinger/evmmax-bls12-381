@@ -123,6 +123,33 @@ end1:
 }
 
 // OUTPUT_SLOT <- OUTPUT_SLOT * 2
+#define macro DoubleStepDebug() = takes(0) returns(0) {
+    // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
+    __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
+    __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
+    __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
+
+    __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
+    __addmodx(OUTPUT_Z, TEMP0, TEMP0)
+    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
+    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
+    __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
+    __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
+    __mulmontx(TEMP2, TEMP2, VAL_12)
+    __mulmontx(OUTPUT_X, TEMP2, OUTPUT_Z)
+    __addmodx(OUTPUT_Y, TEMP0, TEMP2)
+    __mulmontx(OUTPUT_Z, TEMP1, OUTPUT_Z)
+    __addmodx(TEMP1, TEMP2, TEMP2)
+    __addmodx(TEMP2, TEMP1, TEMP2)
+    __submodx(TEMP0, TEMP0, TEMP2)
+    __mulmontx(OUTPUT_Y, TEMP0, OUTPUT_Y)
+    __addmodx(OUTPUT_Y, OUTPUT_X, OUTPUT_Y)
+    __mulmontx(TEMP1, TEMP_POINT_X, TEMP_POINT_Y)
+    __mulmontx(OUTPUT_X, TEMP0, TEMP1)
+    __addmodx(OUTPUT_X, OUTPUT_X, OUTPUT_X)
+}
+
+// OUTPUT_SLOT <- OUTPUT_SLOT * 2
 #define macro DoubleStep() = takes(0) returns(0) {
     // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
     __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
@@ -151,6 +178,11 @@ end1:
 
 #define fn Double() = takes(0) returns(0) {
     DoubleStep()
+}
+
+#define fn DoubleAndAddDebug() = takes(0) returns(0) {
+    DoubleStepDebug()
+    AddStep()
 }
 
 #define fn DoubleAndAdd() = takes(0) returns(0) {
@@ -280,6 +312,10 @@ end1:
     dup1
     tomontx
 
+    [VAL_12_OFFSET]
+    dup1
+    tomontx
+
     SetG1GenZTo1()
 
     InitOutput()
@@ -318,9 +354,13 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     // TODO: double_step_{{i}} rjumpi
     double_step_{{i}} jumpi
 
-    // TODO call add with rjump
-    // cost: push(ret_addr) + rjump + jumpi = 20
-    DoubleAndAdd()
+    {% if i == 254 %}
+        DoubleAndAddDebug()
+    {% else %}
+        // TODO call add with rjump
+        // cost: push(ret_addr) + rjump + jumpi = 20
+        DoubleAndAdd()
+    {% endif %}
 
     // shift-out the top bit of the scalar
     0x01
