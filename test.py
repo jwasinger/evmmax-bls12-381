@@ -17,7 +17,7 @@ def encode_input(scalar, point):
     return pad_scalar(scalar) + pad_input(point.x) + pad_input(point.y)
 
 def bench_geth(inp: str, code_file: str):
-    geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
+    geth_path = os.path.join(os.getcwd(), "go-ethereum-eip5843/build/bin/evm")
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
@@ -61,8 +61,8 @@ def test1():
     assert affine_point[0] == point.x and affine_point[1] == point.y
 
 def main():
-    test1()
-    test3()
+    #test1()
+    #test3()
     test_subgroup_order()
 
 if __name__ == "__main__":
