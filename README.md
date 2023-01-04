@@ -1,6 +1,6 @@
 # evmmax-bls12381
 
-This repository contains an EVM implementation of BLS12381 G1 point multiplication using [EVMMAX](link) opcodes.
+This repository contains an EVM implementation of BLS12381 G1 point multiplication using [EVMMAX](https://github.com/ethereum/EIPs/pull/5843) opcodes.  The contract takes a G1 point in affine coordinates and a 256bit scalar as calldata input (128 bytes).  It outputs the result in standard projective coordinates (144 bytes).
 
 ## Usage
 
@@ -12,7 +12,7 @@ git submodule init
 (cd go-ethereum-asm384 && make all)
 ```
 
-Compile the Huff template source code into executable EVM bytecode snippet:
+Compile the Huff template source code into the deployed bytecode:
 ```
 make
 ```
