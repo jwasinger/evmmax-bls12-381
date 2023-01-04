@@ -29,6 +29,8 @@ geth_path = os.path.join(os.getcwd(), "go-ethereum-eip5843/build/bin/evm")
 
 geth_exec = os.path.join(geth_path)
 geth_cmd = "{} --codefile {} --input {} --bench --statdump run".format(geth_exec, code_file, inp)
+print("avg case (eip5843)")
+print(geth_cmd)
 result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
@@ -57,6 +59,9 @@ geth_cmd = "{} --codefile {} --input {} --bench --statdump run".format(geth_exec
 result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
+
+print("avg case (asm)")
+print(geth_cmd)
 
 res = str(result.stderr)
 evmmax_asm384_exec_time = res.split('\\n')[1][17:]
@@ -91,7 +96,7 @@ if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
 
 result_stdout = str(result.stdout).replace('\\t', '')
-geth_exec_time = int(re.search(r'\\n.*BenchmarkG1Mul.* (.*) ns/op.*\\n', result_stdout).groups()[0])
+worst_case_geth_exec_time = int(re.search(r'\\n.*BenchmarkG1Mul.* (.*) ns/op.*\\n', result_stdout).groups()[0])
 
 # ---
 worst_case_input = 115792089237316195423570985008687907853269984665640564039457584007913129639935
@@ -104,6 +109,9 @@ geth_cmd = "{} --codefile {} --input {} --bench --statdump run".format(geth_exec
 result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
+
+print("worst case (eip5843)")
+print(geth_cmd)
 
 res = str(result.stderr)
 worst_case_evmmax_exec_time = res.split('\\n')[1][17:]
@@ -130,6 +138,9 @@ result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subp
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
 
+print("worst case (asm)")
+print(geth_cmd)
+
 res = str(result.stderr)
 worst_case_evmmax_asm384_exec_time = res.split('\\n')[1][17:]
 worst_case_evmmax_asm384_gas_used = re.search(r'EVM gas used: *([0-9]*)\\n', res)
@@ -152,4 +163,4 @@ with open('benchmarks/benchmarks.csv', 'w') as f:
     f.write('worst-case-eip,{}\n'.format(worst_case_evmmax_exec_time))
     f.write('worst-case-asm,{}\n'.format(worst_case_evmmax_asm384_exec_time))
     f.write('worst-case-rust,{}\n'.format(worst_case_rust_exec_time))
-    f.write('worst-case-geth,{}\n'.format(geth_exec_time))
+    f.write('worst-case-geth,{}\n'.format(worst_case_geth_exec_time))
