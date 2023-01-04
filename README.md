@@ -2,6 +2,8 @@
 
 This repository contains an EVM implementation of BLS12381 G1 point multiplication using [EVMMAX](https://github.com/ethereum/EIPs/pull/5843) opcodes.  The contract takes a G1 point in affine coordinates and a 256bit scalar as calldata input (128 bytes).  It outputs the result in standard projective coordinates (144 bytes).
 
+See [this](https://hackmd.io/pz5if-NJRQm8WWyyZd050A) document for more information.
+
 ## Usage
 
 Download the submodules and build them:
