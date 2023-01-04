@@ -10,3 +10,6 @@
 [submodule "go-ethereum-asm384"]
 	path = go-ethereum-asm384
 	url = https://github.com/jwasinger/go-ethereum
+[submodule "bls12_381-g1mul-constant-time"]
+	path = bls12_381-g1mul-constant-time
+	url = https://github.com/jwasinger/bls12_381
