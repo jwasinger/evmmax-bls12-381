@@ -31,7 +31,6 @@ def bench_geth(inp: str, code_file: str):
 def run_geth(inp):
     return bench_geth(inp, "build/artifacts/g1mul/g1mul_dbl_and_add.hex")
 
-# test g1_gen * subgroup_order == inf_point
 def test_subgroup_order():
     point = g1_gen()
     scalar = SUBGROUP_ORDER
@@ -61,8 +60,11 @@ def test1():
     assert affine_point[0] == point.x and affine_point[1] == point.y
 
 def main():
-    #test1()
-    #test3()
+    print("hardcoded test case 1")
+    test1()
+    print("hardcoded test case 2")
+    test3()
+    print("test g0_gen * subgroup_order == inf_point")
     test_subgroup_order()
 
 if __name__ == "__main__":

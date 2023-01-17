@@ -1,8 +1,8 @@
-avg-case-eip,1179820
-avg-case-asm,669000
-avg-case-rust,352000
-avg-case-geth,290404
-worst-case-eip,1559564
-worst-case-asm,924000
-worst-case-rust,493000
-worst-case-geth,413435
+avg-case-eip,1091406
+avg-case-asm,675000
+avg-case-rust,346000
+avg-case-geth,281066
+worst-case-eip,1531085
+worst-case-asm,931000
+worst-case-rust,500000
+worst-case-geth,415685
