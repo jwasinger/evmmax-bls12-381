@@ -14,7 +14,7 @@ if res[1] != '\\xc2\\xb5s':
 
 rust_exec_time = round(float(res[0])) * 1000
 
-geth_cmd = "go test -run=^$ -bench=G1MulAvgCase"
+geth_cmd = "go test -run=^$ -bench=G1MulAvgCase -tags=blsadx"
 result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), 'go-ethereum-eip5843/crypto/bls12381'))
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
@@ -90,7 +90,7 @@ if res[1] != '\\xc2\\xb5s':
 
 worst_case_rust_exec_time = round(float(res[0])) * 1000
 
-geth_cmd = "go test -run=^$ -bench=G1MulWorstCase"
+geth_cmd = "go test -run=^$ -bench=G1MulWorstCase -tags=blsadx"
 result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.path.join(os.getcwd(), 'go-ethereum-eip5843/crypto/bls12381'))
 if result.returncode != 0:
     raise Exception("geth exec error: {}".format(result.stderr))
@@ -147,6 +147,7 @@ worst_case_evmmax_asm384_gas_used = re.search(r'EVM gas used: *([0-9]*)\\n', res
 
 if worst_case_evmmax_asm384_exec_time.endswith('ms'):
     # convert from ms to ns
+    import pdb; pdb.set_trace()
     worst_case_evmmax_asm384_exec_time = float(worst_case_evmmax_exec_time[:-2])
     worst_case_evmmax_asm384_exec_time = round(worst_case_evmmax_exec_time * 1000000)
 elif worst_case_evmmax_asm384_exec_time.endswith('\\xc2\\xb5s'):
