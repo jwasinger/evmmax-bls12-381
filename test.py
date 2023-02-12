@@ -29,7 +29,7 @@ def bench_geth(inp: str, code_file: str):
     return output
 
 def run_geth(inp):
-    return bench_geth(inp, "build/artifacts/g1mul/g1mul_dbl_and_add.hex")
+    return bench_geth(inp, "build/artifacts/ecmul/g1mul_dbl_and_add.hex")
 
 def test_subgroup_order():
     point = g1_gen()

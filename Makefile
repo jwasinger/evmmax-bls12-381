@@ -4,7 +4,7 @@ build:
 	rm -rf build
 	mkdir -p build/src
 	mkdir -p build/artifacts
-	mkdir -p build/src/g1mul
-	mkdir -p build/artifacts/g1mul
-	python3 gen_huff.py templates/g1mul/g1mul_dbl_and_add.huff.template build/src/g1mul/g1mul_dbl_and_add.huff
-	bash -c "./huff-rs/target/release/huffc --artifacts --bytecode build/src/g1mul/g1mul_dbl_and_add.huff > build/artifacts/g1mul/g1mul_dbl_and_add.hex"
+	mkdir -p build/src/ecmul
+	mkdir -p build/artifacts/ecmul
+	python3 gen_huff.py templates/ecmul/ecmul_dbl_and_add.huff.template build/src/g1mul_dbl_and_add.huff
+	bash -c "./huff-rs/target/release/huffc --artifacts --bytecode build/src/g1mul_dbl_and_add.huff > build/artifacts/ecmul/g1mul_dbl_and_add.hex"
