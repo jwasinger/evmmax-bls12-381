@@ -1,6 +1,6 @@
 .PHONY: build
 
-all: init g2
+all: init g1 g2
 
 init:
 	rm -rf build
