@@ -60,7 +60,16 @@
 
     {{ emit_check_val_nonzero('OUTPUT_Y') -}}
 
+    0x00
+    eq
+    not
+    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    eq
+
+    // stack: OUTPUT_Y != 0, OUTPUT_X | OUTPUT_Z == 0
     and
+    0x00
+    eq
     end1 jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537

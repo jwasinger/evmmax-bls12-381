@@ -242,13 +242,8 @@ class TemplateState:
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
-            self.emit_mem_offset(item, offset=48),
-            'mload',
-            self.emit_mem_offset(item, offset=80),
-            'mload',
-            '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
-            'and',
-            'and']
+            'or',
+            ]
 
         return res
 

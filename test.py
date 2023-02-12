@@ -21,6 +21,7 @@ def bench_geth(inp: str, code_file: str):
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
+    print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise Exception("geth exec error: {}".format(result.stderr))
