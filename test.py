@@ -74,8 +74,12 @@ def test_g1_1():
 
 def test_g2_1():
     point = g2_gen()
-    scalar = 1
+    scalar = SUBGROUP_ORDER
     inp = encode_g2mul_input(scalar, point)
+
+    output = run_geth_g2(inp)
+    import pdb; pdb.set_trace()
+    foo = 'bar'
 
 def main():
     print("testing g1:")
