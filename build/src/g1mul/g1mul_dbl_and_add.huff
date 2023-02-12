@@ -1,114 +1,66 @@
-#define constant G1_GEN_X = 0x0
-#define constant G1_GEN_Y = 0x1
-#define constant G1_GEN_Z = 0x2
-#define constant OUTPUT_X = 0x3
-#define constant OUTPUT_Y = 0x4
-#define constant OUTPUT_Z = 0x5
-
 // TODO remove unused range
-
-#define constant TEMP_POINT_X = 0x6
-#define constant TEMP_POINT_Y = 0x7
-#define constant TEMP_POINT_Z = 0x8
-
-#define constant TEMP0 = 0x9
-#define constant TEMP1 = 0xa
-#define constant TEMP2 = 0xb
-#define constant TEMP3 = 0xc
-#define constant TEMP3 = 0xd
-#define constant TEMP4 = 0xe
-#define constant TEMP5 = 0xf
-#define constant TEMP6 = 0x10
-#define constant TEMP7 = 0x11
-
-#define constant ONE_VAL = 0x12
-#define constant ONE_VAL_OFFSET = 0x360
-#define constant ONE_VAL_OFFSET_PLUS_16 = 0x370
-#define constant VAL_12 = 0x13
-#define constant VAL_12_OFFSET = 0x390
-#define constant VAL_12_OFFSET_PLUS_16 = 0x3a0
-#define constant ZERO_VAL = 0x14
-
-#define constant G1_GEN_X_OFFSET = 0x00
-#define constant G1_GEN_X_OFFSET_PLUS_32 = 0x20
-#define constant G1_GEN_Y_OFFSET = 0x30
-#define constant G1_GEN_Y_OFFSET_PLUS_32 = 0x50
-#define constant G1_GEN_Z_OFFSET = 0x60
-#define constant G1_GEN_Z_OFFSET_PLUS_16 = 0x70
-#define constant OUTPUT_X_OFFSET = 0x90
-#define constant OUTPUT_X_OFFSET_PLUS_32 = 0xb0
-#define constant OUTPUT_Y_OFFSET = 0xc0
-#define constant OUTPUT_Y_OFFSET_PLUS_32 = 0xe0
-#define constant OUTPUT_Z_OFFSET = 0xf0
-#define constant OUTPUT_Z_OFFSET_PLUS_32 = 0x110
-#define constant TEMP5_OFFSET = 0x02d0
-#define constant TEMP5_OFFSET_PLUS_32 = 0x02f0
-
-// OUTPUT_X <- OUTPUT_X / OUTPUT_Z
-// OUTPUT_Y <- OUTPUT_Y / OUTPUT_Z
-#define macro ToAffine() = takes(0) returns(0) {
-    INVMOD_OUTPUT_Z()
-    __mulmontx(OUTPUT_X, OUTPUT_X, OUTPUT_Z)
-    __mulmontx(OUTPUT_Y, OUTPUT_Y, OUTPUT_Z)
-}
-
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
-    // set g1_gen_z = 1
-    __addmodx(G1_GEN_Z, ONE_VAL, ZERO_VAL)
+    __addmodx(s5,s1,s0)
+0xf0
+dup1
+tomontx
 }
 
 #define macro InfCheckSetZero() = takes(0) returns(0) {
-    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
-    __addmodx(OUTPUT_Y, ZERO_VAL, ZERO_VAL)
-}
+__addmodx(s6,s0,s0)
+    __addmodx(s7,s0,s0)
+    }
 
 #define macro InfCheck() = takes(0) returns(0) {
-    // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
+// if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
     //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
 
-    [OUTPUT_X_OFFSET]
+    0x120
     mload
-    [OUTPUT_X_OFFSET_PLUS_32]
-    mload
-    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
-    and
-    or
-    // stack: OUTPUT_X (32 most significant bytes) | OUTPUT_X (16 least significant bytes)
-
-
-    [OUTPUT_Z_OFFSET]
-    mload
-    [OUTPUT_Z_OFFSET_PLUS_32]
+    0x140
     mload
     0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
-    // stack: OUTPUT_Z (32 most significant bytes), OUTPUT_Z (16 least significant bytes)
-
-    or
+    0x160
+    mload
+    0x180
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    and
+    0x180
+    mload
+    0x1a0
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    0x1c0
+    mload
+    0x1e0
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    and
     or
     0x00
     eq
 
     // stack: OUTPUT_X | OUTPUT_Z == 0
 
-    [OUTPUT_Y_OFFSET]
+    0x150
     mload
-    [OUTPUT_Y_OFFSET_PLUS_32]
+    0x170
     mload
     0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
-    or
-    0x00
-    eq
-    0x00
-    eq
-    // stack: OUTPUT_Y (32 most significant bytes) | OUTPUT_Y (16 least significant bytes) != 0, OUTPUT_X | OUTPUT_Z == 0
-
-    // stack: OUTPUT_Y != 0, OUTPUT_X | OUTPUT_Z == 0
-
-    eq
-    0x00
-    eq
+    0x190
+    mload
+    0x1b0
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    and
+    and
     end1 jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537
@@ -116,38 +68,38 @@
     // ops are in the same macro
     InfCheckSetZero()
 
-    0x60 // 96 = 48 * 2 == (0,0)
-    [OUTPUT_X_OFFSET]
+    0x60
+    0x120
+    
     return
 end1:
 }
 
 // OUTPUT_SLOT <- OUTPUT_SLOT * 2
 #define macro DoubleStep() = takes(0) returns(0) {
-    // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
-    __addmodx(TEMP_POINT_X, OUTPUT_X, ZERO_VAL)
-    __addmodx(TEMP_POINT_Y, OUTPUT_Y, ZERO_VAL)
-    __addmodx(TEMP_POINT_Z, OUTPUT_Z, ZERO_VAL)
-
-    __mulmontx(TEMP0, TEMP_POINT_Y, TEMP_POINT_Y)
-    __addmodx(OUTPUT_Z, TEMP0, TEMP0)
-    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
-    __addmodx(OUTPUT_Z, OUTPUT_Z, OUTPUT_Z)
-    __mulmontx(TEMP1, TEMP_POINT_Y, TEMP_POINT_Z)
-    __mulmontx(TEMP2, TEMP_POINT_Z, TEMP_POINT_Z)
-    __mulmontx(TEMP2, TEMP2, VAL_12)
-    __mulmontx(OUTPUT_X, TEMP2, OUTPUT_Z)
-    __addmodx(OUTPUT_Y, TEMP0, TEMP2)
-    __mulmontx(OUTPUT_Z, TEMP1, OUTPUT_Z)
-    __addmodx(TEMP1, TEMP2, TEMP2)
-    __addmodx(TEMP2, TEMP1, TEMP2)
-    __submodx(TEMP0, TEMP0, TEMP2)
-    __mulmontx(OUTPUT_Y, TEMP0, OUTPUT_Y)
-    __addmodx(OUTPUT_Y, OUTPUT_X, OUTPUT_Y)
-    __mulmontx(TEMP1, TEMP_POINT_X, TEMP_POINT_Y)
-    __mulmontx(OUTPUT_X, TEMP0, TEMP1)
-    __addmodx(OUTPUT_X, OUTPUT_X, OUTPUT_X)
-}
+// copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
+    __addmodx(s9,s6,s0)
+    __addmodx(s10,s7,s0)
+    __addmodx(s11,s8,s0)
+    __mulmontx(s12,s10,s10)
+    __addmodx(s8,s12,s12)
+    __addmodx(s8,s8,s8)
+    __addmodx(s8,s8,s8)
+    __mulmontx(s13,s10,s11)
+    __mulmontx(s14,s11,s11)
+    __mulmontx(s14,s14,s20)
+    __mulmontx(s6,s14,s8)
+    __addmodx(s7,s12,s14)
+    __mulmontx(s8,s13,s8)
+    __addmodx(s13,s14,s14)
+    __addmodx(s14,s13,s14)
+    __submodx(s12,s12,s14)
+    __mulmontx(s7,s12,s7)
+    __addmodx(s7,s6,s7)
+    __mulmontx(s13,s9,s10)
+    __mulmontx(s6,s12,s13)
+    __addmodx(s6,s6,s6)
+    }
 
 #define fn Double() = takes(0) returns(0) {
     DoubleStep()
@@ -159,98 +111,88 @@ end1:
 }
 
 #define macro InitOutput() = takes(0) returns(0) {
-    // copy g1_gen to where we construct the output
-    // TODO, just place G1_gen in the output slot
-    __addmodx(OUTPUT_X, ZERO_VAL, ZERO_VAL)
-    __addmodx(OUTPUT_Y, ONE_VAL, ZERO_VAL)
-    __addmodx(OUTPUT_Z, ZERO_VAL, ZERO_VAL)
+    __addmodx(s6,s0,s0)
+__addmodx(s7,s1,s0)
+0x150
+dup1
+tomontx
+__addmodx(s8,s0,s0)
 }
 
-#define constant OUTPUT_TEMP_X = 0xf // TEMP5
-#define constant OUTPUT_TEMP_Y = 0x10 // TEMP6
-#define constant OUTPUT_TEMP_Z = 0x11 // TEMP7
 // OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
 #define macro AddStep() = takes(0) returns(0) {
-    // copy G1_GEN into TEMP_POINT_(x/y/z)
-    __addmodx(TEMP_POINT_X, G1_GEN_X, ZERO_VAL)
-    __addmodx(TEMP_POINT_Y, G1_GEN_Y, ZERO_VAL)
-    __addmodx(TEMP_POINT_Z, G1_GEN_Z, ZERO_VAL)
-
-    __mulmontx(TEMP0, OUTPUT_X, TEMP_POINT_X)
-    __mulmontx(TEMP1, OUTPUT_Y, TEMP_POINT_Y)
-    __mulmontx(TEMP2, OUTPUT_Z, TEMP_POINT_Z)
-    __addmodx(TEMP3, OUTPUT_X, OUTPUT_Y)
-    __addmodx(TEMP4, TEMP_POINT_X, TEMP_POINT_Y)
-    __mulmontx(TEMP3, TEMP3, TEMP4)
-    __addmodx(TEMP4, TEMP0, TEMP1)
-    __submodx(TEMP3, TEMP3, TEMP4)
-    __addmodx(TEMP4, OUTPUT_Y, OUTPUT_Z)
-    __addmodx(OUTPUT_TEMP_X, TEMP_POINT_Y, TEMP_POINT_Z)
-    __mulmontx(TEMP4, TEMP4, OUTPUT_TEMP_X)
-    __addmodx(OUTPUT_TEMP_X, TEMP1, TEMP2)
-    __submodx(TEMP4, TEMP4, OUTPUT_TEMP_X)
-    __addmodx(OUTPUT_TEMP_X, OUTPUT_X, OUTPUT_Z)
-    __addmodx(OUTPUT_TEMP_Y, TEMP_POINT_X, TEMP_POINT_Z)
-    __mulmontx(OUTPUT_TEMP_X, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
-    __addmodx(OUTPUT_TEMP_Y, TEMP0, TEMP2)
-    __submodx(OUTPUT_TEMP_Y, OUTPUT_TEMP_X, OUTPUT_TEMP_Y)
-    __addmodx(OUTPUT_TEMP_X, TEMP0, TEMP0)
-    __addmodx(TEMP0, OUTPUT_TEMP_X, TEMP0)
-    __mulmontx(TEMP2, TEMP2, VAL_12)
-    __addmodx(OUTPUT_TEMP_Z, TEMP1, TEMP2)
-    __submodx(TEMP1, TEMP1, TEMP2)
-    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, VAL_12)
-    __mulmontx(OUTPUT_TEMP_X, TEMP4, OUTPUT_TEMP_Y)
-    __mulmontx(TEMP2, TEMP3, TEMP1)
-    __submodx(OUTPUT_TEMP_X, TEMP2, OUTPUT_TEMP_X)
-    __mulmontx(OUTPUT_TEMP_Y, OUTPUT_TEMP_Y, TEMP0)
-    __mulmontx(TEMP1, TEMP1, OUTPUT_TEMP_Z)
-    __addmodx(OUTPUT_TEMP_Y, TEMP1, OUTPUT_TEMP_Y)
-    __mulmontx(TEMP0, TEMP0, TEMP3)
-    __mulmontx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP4)
-    __addmodx(OUTPUT_TEMP_Z, OUTPUT_TEMP_Z, TEMP0)
-
+// copy G1_GEN into TEMP_POINT_(x/y/z)
+    __addmodx(s9,s3,s0)
+    __addmodx(s10,s4,s0)
+    __addmodx(s11,s5,s0)
+    __mulmontx(s12,s6,s9)
+    __mulmontx(s13,s7,s10)
+    __mulmontx(s14,s8,s11)
+    __addmodx(s15,s6,s7)
+    __addmodx(s16,s9,s10)
+    __mulmontx(s15,s15,s16)
+    __addmodx(s16,s12,s13)
+    __submodx(s15,s15,s16)
+    __addmodx(s16,s7,s8)
+    __addmodx(s17,s10,s11)
+    __mulmontx(s16,s16,s17)
+    __addmodx(s17,s13,s14)
+    __submodx(s16,s16,s17)
+    __addmodx(s17,s6,s8)
+    __addmodx(s18,s9,s11)
+    __mulmontx(s17,s17,s18)
+    __addmodx(s18,s12,s14)
+    __submodx(s18,s17,s18)
+    __addmodx(s17,s12,s12)
+    __addmodx(s12,s17,s12)
+    __mulmontx(s14,s14,s20)
+    __addmodx(s19,s13,s14)
+    __submodx(s13,s13,s14)
+    __mulmontx(s18,s18,s20)
+    __mulmontx(s17,s16,s18)
+    __mulmontx(s14,s15,s13)
+    __submodx(s17,s14,s17)
+    __mulmontx(s18,s18,s12)
+    __mulmontx(s13,s13,s19)
+    __addmodx(s18,s13,s18)
+    __mulmontx(s12,s12,s15)
+    __mulmontx(s19,s19,s16)
+    __addmodx(s19,s19,s12)
     // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
-    __addmodx(OUTPUT_X, OUTPUT_TEMP_X, ZERO_VAL)
-    __addmodx(OUTPUT_Y, OUTPUT_TEMP_Y, ZERO_VAL)
-    __addmodx(OUTPUT_Z, OUTPUT_TEMP_Z, ZERO_VAL)
-}
+    __addmodx(s6,s17,s0)
+    __addmodx(s7,s18,s0)
+    __addmodx(s8,s19,s0)
+    }
 
 #define macro CONVERT_OUTPUT_TO_NORM() = takes(0) returns(0) {
-    __mulmontx(OUTPUT_X, OUTPUT_X, ONE_VAL)
-    __mulmontx(OUTPUT_Y, OUTPUT_Y, ONE_VAL)
-    __mulmontx(OUTPUT_Z, OUTPUT_Z, ONE_VAL) // TODO remove this after affine conversion is added in
+__mulmontx(s6,s6,s1)
+    
+    __mulmontx(s7,s7,s1)
+    
+    __mulmontx(s8,s8,s1)
+    
 }
 
 #define macro MAIN() = takes(0) returns(0) {
-    // allocate all the memory we will use
+// allocate all the memory we will use
     0x00
-    0x03f0
+    0x1192 // TODO make this generated by a template call
     mstore
 
-    // store the constant 12
-    0xc
-    [VAL_12_OFFSET_PLUS_16]
-    mstore
-
-    // set the modulus
     0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f624
-    0x00
+    0x60
     mstore
-    //stack:
-
     0x1eabfffeb153ffffb9feffffffffaaab00000000000000000000000000000000
-    0x20
+    0x80
     mstore
-    //stack:
+    
 
     0x00
     0x06
-    0x00
+    0x60
     setmodx
-    //stack:
 
-    // load the scalar input
+    // load the scalar
     0x00
     calldataload
     //stack: scalar
@@ -258,32 +200,26 @@ end1:
     // copy the point (affine)
     0x60
     0x20
-    0x00
+    0x90
     calldatacopy
     //stack: scalar
 
-    [G1_GEN_X_OFFSET]
+    0x90
     dup1
     tomontx
-
-    [G1_GEN_Y_OFFSET]
+    0xc0
     dup1
     tomontx
-
-    // TODO we only need to compute mont(1) once.
-    // after: copying it elsewhere is cheaper
-    0x01
-    [ONE_VAL_OFFSET_PLUS_16]
+    0xc
+    0x3d0
     mstore
-
-    [ONE_VAL_OFFSET]
+    0x1
+    0x40
+    mstore
+    //VAL_12 < 12
+    0x3c0
     dup1
     tomontx
-
-    [VAL_12_OFFSET]
-    dup1
-    tomontx
-
     SetG1GenZTo1()
 
     InitOutput()
@@ -12288,12 +12224,12 @@ double_step_254:
 // convert the output to canonical form
 end:
     InfCheck()
-    CONVERT_OUTPUT_TO_NORM()
+    //CONVERT_OUTPUT_TO_NORM()
 
     // TODO
     // CONVERT_TO_AFFINE()
 
     0x90
-    [OUTPUT_X_OFFSET]
+    0x120
     return
 }
