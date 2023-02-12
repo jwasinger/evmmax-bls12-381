@@ -130,6 +130,7 @@ class TemplateState:
             self.__emit_addmodx(out_slot, x_slot, y_slot),
             self.__emit_addmodx(out_slot + 1, x_slot + 1, y_slot + 1)
         ]
+        return res
 
     def emit_fp2_sub(self, out, x, y):
         out_slot = self.allocs[out]
@@ -140,6 +141,7 @@ class TemplateState:
             self.__emit_submodx(out_slot, x_slot, y_slot),
             self.__emit_submodx(out_slot + 1, x_slot + 1, y_slot + 1)
         ]
+        return res
 
     def emit_fp2_sqr(self, out, x):
         out_slot_0 = self.allocs[out]
@@ -170,8 +172,8 @@ class TemplateState:
         res = [
             # out[0] <- x[0] * y[0] + x[1] * y[1]
             self.__emit_mulmontx(out_slot_0, x_slot_0, y_slot_0),
-            self.__emit_mulmontx(fp2mul_temp_slot, x_slot_1, y_slot_1),
-            self.__emit_addmodx(out_slot_0, out_slot_0, fp2mul_temp_slot_0),
+            self.__emit_mulmontx(fp2_mul_temp_slot, x_slot_1, y_slot_1),
+            self.__emit_addmodx(out_slot_0, out_slot_0, fp2_mul_temp_slot),
             # out[1] <- x[0] * y[1] + x[1] * y[0]
             self.__emit_mulmontx(out_slot_1, x_slot_0, y_slot_1),
             self.__emit_mulmontx(fp2_mul_temp_slot, x_slot_1, y_slot_0),
@@ -183,7 +185,7 @@ class TemplateState:
         if self.item_size == 1:
             return [self.emit_addmodx(out, x, y)]
         else:
-            return self.emit_fp2_add(output_item, input_item)
+            return self.emit_fp2_add(out, x, y)
 
     def emit_f_sqr(self, out, x):
         if self.item_size == 1:
@@ -232,9 +234,6 @@ class TemplateState:
         return res
     
     def __emit_check_fp2_nonzero(self, item):
-        pass
-
-    def emit_check_val_nonzero(self, item):
         res = [
             self.emit_mem_offset(item),
             'mload',
@@ -243,11 +242,38 @@ class TemplateState:
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
             'or',
+            self.emit_mem_offset(item),
+            'mload',
+            self.emit_mem_offset(item, offset=32),
+            'mload',
+            '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
+            'and',
+            'or',
+            'or'
             ]
 
         return res
 
-    # TODO change name 32byte->slot aligned
+    def __emit_check_fp_nonzero(self, item):
+        res = [
+            self.emit_mem_offset(item),
+            'mload',
+            self.emit_mem_offset(item, offset=32),
+            'mload',
+            '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
+            'and',
+            'or'
+            ]
+
+        return res
+
+    def emit_check_val_nonzero(self, item):
+        if self.item_size == 1:
+            return self.__emit_check_fp_nonzero(item)
+        else:
+            return self.__emit_check_fp2_nonzero(item)
+
+    # TODO change name to store_constant_at_slot_offset or something similar
     def emit_store_constant_32byte_aligned(self, output, val):
         output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
         res = []
