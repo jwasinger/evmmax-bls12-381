@@ -81,7 +81,7 @@ def test_g2_1():
     import pdb; pdb.set_trace()
     foo = 'bar'
 
-def main():
+def g1_tests():
     print("testing g1:")
     print("hardcoded test case 1")
     test_g1_1()
@@ -89,6 +89,8 @@ def main():
     test_g1_3()
     print("test g0_gen * subgroup_order == inf_point")
     test_g1_subgroup_order()
+
+def main():
 
     print("testing g2")
     test_g2_1()

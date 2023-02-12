@@ -415,7 +415,7 @@ def main():
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
     t.globals.update(func_dict)
-    result = t.render(AFFINE_POINT_SIZE='0x60', PROJ_POINT_SIZE='0x90', exponent_bits=exponent_bits, template_state=template_state)
+    result = t.render(AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)
