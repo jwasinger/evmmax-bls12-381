@@ -30,7 +30,7 @@
 
 {{ alloc_range('VAL_12', 1) -}}
 
-{{ alloc_slot('FP2_MUL_TEMP', 1') -}}
+{{ alloc_slot('FP2_MUL_TEMP') -}}
 
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
     {{ emit_f_set_one('G1_GEN_Z') -}}

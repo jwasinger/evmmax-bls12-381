@@ -54,7 +54,7 @@ class TemplateState:
         out_slot = self.allocs[out]
 
         return [
-            self.__emit_addmodx(out_slot, self.allocs['ONE_VAL'], self.allocs['ZERO_VAL'])
+            self.__emit_addmodx(out_slot, self.allocs['ONE_VAL'], self.allocs['ZERO_VAL']),
             self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
@@ -76,7 +76,7 @@ class TemplateState:
         out_slot = self.allocs[out]
 
         return [
-            self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+            self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL']),
             self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
@@ -127,7 +127,7 @@ class TemplateState:
         y_slot = self.allocs[y]
 
         res = [
-            self.__emit_addmodx(out_slot, x_slot, y_slot)
+            self.__emit_addmodx(out_slot, x_slot, y_slot),
             self.__emit_addmodx(out_slot + 1, x_slot + 1, y_slot + 1)
         ]
 
@@ -137,7 +137,7 @@ class TemplateState:
         y_slot = self.allocs[y]
 
         res = [
-            self.__emit_submodx(out_slot, x_slot, y_slot)
+            self.__emit_submodx(out_slot, x_slot, y_slot),
             self.__emit_submodx(out_slot + 1, x_slot + 1, y_slot + 1)
         ]
 
@@ -242,9 +242,9 @@ class TemplateState:
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
-            self.emit_mem_offset(item, offset=64),
+            self.emit_mem_offset(item, offset=48),
             'mload',
-            self.emit_mem_offset(item, offset=96),
+            self.emit_mem_offset(item, offset=80),
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
