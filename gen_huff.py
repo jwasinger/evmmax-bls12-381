@@ -3,11 +3,13 @@ import os
 import math
 from jinja2.nativetypes import NativeEnvironment
 
-ITEM_SIZE = 1
-
 class TemplateState:
-    def __init__(self):
-        self.item_size = ITEM_SIZE
+    def __init__(self, g2=False):
+        if g2:
+            self.item_size = 2
+        else:
+            self.item_size = 1
+
         self.free_slot = 0
         self.evmmax_slot_size = 48 # hardcode to bls for now
         self.evmmax_mem_start = 0
@@ -49,7 +51,12 @@ class TemplateState:
         ]
 
     def emit_fp2_set_one(self, out):
-        pass
+        out_slot = self.allocs[out]
+
+        return [
+            self.__emit_addmodx(out_slot, self.allocs['ONE_VAL'], self.allocs['ZERO_VAL'])
+            self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+        ]
 
     def emit_f_set_one(self, out):
         if self.item_size == 1:
@@ -64,8 +71,14 @@ class TemplateState:
             self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
-    def emit_fp2_set_one(self, out):
-        pass
+
+    def emit_fp2_set_zero(self, out):
+        out_slot = self.allocs[out]
+
+        return [
+            self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+            self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+        ]
 
     def emit_f_set_zero(self, out):
         if self.item_size == 1:
@@ -105,7 +118,65 @@ class TemplateState:
         input_item_slot = self.allocs[input_item] * self.item_size
         res = []
         for i in range(self.item_size):
-            res.append(self.__emit_addmodx(output_item_slot * self.item_size + i, input_item_slot * self.item_size + i, self.allocs['ZERO_VAL']))
+            res.append(self.__emit_addmodx(output_item_slot + i, input_item_slot + i, self.allocs['ZERO_VAL']))
+        return res
+
+    def emit_fp2_add(self, out, x, y):
+        out_slot = self.allocs[out]
+        x_slot = self.allocs[x]
+        y_slot = self.allocs[y]
+
+        res = [
+            self.__emit_addmodx(out_slot, x_slot, y_slot)
+            self.__emit_addmodx(out_slot + 1, x_slot + 1, y_slot + 1)
+        ]
+
+    def emit_fp2_sub(self, out, x, y):
+        out_slot = self.allocs[out]
+        x_slot = self.allocs[x]
+        y_slot = self.allocs[y]
+
+        res = [
+            self.__emit_submodx(out_slot, x_slot, y_slot)
+            self.__emit_submodx(out_slot + 1, x_slot + 1, y_slot + 1)
+        ]
+
+    def emit_fp2_sqr(self, out, x):
+        out_slot_0 = self.allocs[out]
+        out_slot_1 = out_slot_0 + 1
+        x_slot_0 = self.allocs[x]
+        x_slot_1 = x_slot_0 + 1
+
+        res = [
+            # out[0] <- (x[0] + x[1]) * (x[0] - x[1])
+            self.__emit_addmodx(out_slot_1, x_slot_0, x_slot_1),
+            self.__emit_submodx(out_slot_0, x_slot_0, x_slot_1),
+            self.__emit_mulmontx(out_slot_0, out_slot_0, out_slot_1),
+            # out[1] <- 2 * x[0] * x[1]
+            self.__emit_mulmontx(out_slot_1, x_slot_0, x_slot_1),
+            self.__emit_addmodx(out_slot_1, out_slot_1, out_slot_1)
+        ]
+        return res
+
+    def emit_fp2_mul(self, out, x, y):
+        out_slot_0 = self.allocs[out]
+        out_slot_1 = out_slot_0 + 1
+        x_slot_0 = self.allocs[x]
+        x_slot_1 = x_slot_0 + 1
+        y_slot_0 = self.allocs[y]
+        y_slot_1 = y_slot_0 + 1
+        fp2_mul_temp_slot = self.allocs['FP2_MUL_TEMP']
+
+        res = [
+            # out[0] <- x[0] * y[0] + x[1] * y[1]
+            self.__emit_mulmontx(out_slot_0, x_slot_0, y_slot_0),
+            self.__emit_mulmontx(fp2mul_temp_slot, x_slot_1, y_slot_1),
+            self.__emit_addmodx(out_slot_0, out_slot_0, fp2mul_temp_slot_0),
+            # out[1] <- x[0] * y[1] + x[1] * y[0]
+            self.__emit_mulmontx(out_slot_1, x_slot_0, y_slot_1),
+            self.__emit_mulmontx(fp2_mul_temp_slot, x_slot_1, y_slot_0),
+            self.__emit_addmodx(out_slot_1, out_slot_1, fp2_mul_temp_slot)
+        ]
         return res
 
     def emit_f_add(self, out, x, y):
@@ -159,6 +230,10 @@ class TemplateState:
             res.append('tomontx')
 
         return res
+    
+    def __emit_check_fp2_nonzero(self, item):
+        pass
+
     def emit_check_val_nonzero(self, item):
         res = [
             self.emit_mem_offset(item),
@@ -202,7 +277,7 @@ class TemplateState:
 
         return res
 
-template_state = TemplateState()
+template_state = None
 
 def start_block():
     global template_state
@@ -301,8 +376,13 @@ func_dict = {
 
 def main():
     global template_state
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         raise Exception("bad argument count")
+
+    if sys.argv[3] == 'G1':
+        template_state = TemplateState()
+    else:
+        template_state = TemplateState(g2=True)
 
     env = NativeEnvironment()
 
