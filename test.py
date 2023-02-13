@@ -91,7 +91,7 @@ def g1_tests():
     test_g1_subgroup_order()
 
 def main():
-
+    #g1_tests()
     print("testing g2")
     test_g2_1()
 

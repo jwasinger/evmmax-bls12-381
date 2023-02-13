@@ -21,6 +21,7 @@ class TemplateState:
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
 
+        #import pdb; pdb.set_trace()
         self.allocs[symbol] = self.free_slot
         self.free_slot += count * self.item_size
 
@@ -114,8 +115,8 @@ class TemplateState:
         return self.__emit_submodx(out_slot, x_slot, y_slot)
 
     def emit_f_copy(self, output_item, input_item):
-        output_item_slot = self.allocs[output_item] * self.item_size
-        input_item_slot = self.allocs[input_item] * self.item_size
+        output_item_slot = self.allocs[output_item]
+        input_item_slot = self.allocs[input_item]
         res = []
         for i in range(self.item_size):
             res.append(self.__emit_addmodx(output_item_slot + i, input_item_slot + i, self.allocs['ZERO_VAL']))

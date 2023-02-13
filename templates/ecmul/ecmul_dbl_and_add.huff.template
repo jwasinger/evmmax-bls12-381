@@ -92,10 +92,6 @@ end1:
     {{ emit_f_copy('TEMP_POINT_Y', 'OUTPUT_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'OUTPUT_Z') -}}
 
-    {{ PROJ_POINT_SIZE }}
-    {{ emit_mem_offset('OUTPUT_X') }}
-    return
-
     {{ emit_f_sqr('TEMP0', 'TEMP_POINT_Y') -}}
     {{ emit_f_add('OUTPUT_Z', 'TEMP0', 'TEMP0') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
@@ -300,7 +296,7 @@ double_step_{{i}}:
 
 // convert the output to canonical form
 end:
-    //InfCheck()
+    InfCheck()
     //CONVERT_OUTPUT_TO_NORM()
 
     // TODO
