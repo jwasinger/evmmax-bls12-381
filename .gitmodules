@@ -13,3 +13,9 @@
 [submodule "bls12_381-g1mul-constant-time"]
 	path = bls12_381-g1mul-constant-time
 	url = https://github.com/jwasinger/bls12_381
+[submodule "templates/inv_mod/addchain"]
+	path = templates/inv_mod/addchain
+	url = https://github.com/jwasinger/addchain
+[submodule "templates/invmod/addchain"]
+	path = templates/invmod/addchain
+	url = https://github.com/jwasinger/addchain
