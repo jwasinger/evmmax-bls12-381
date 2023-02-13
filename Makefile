@@ -8,6 +8,8 @@ init:
 	mkdir -p build/artifacts
 	mkdir -p build/src/ecmul
 	mkdir -p build/artifacts/ecmul
+	mkdir -p build/src/invmod
+	mkdir -p build/artifacts/invmod
 
 g1:
 	#python3 gen_huff.py templates/ecmul/ecmul_dbl_and_add.huff.template build/src/g1mul_dbl_and_add.huff G1

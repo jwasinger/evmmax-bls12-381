@@ -339,6 +339,10 @@ def emit_f_sub(out, x, y) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_sub(out, x, y))
 
+def emit_mulmontx(out, x, y) -> str:
+    global template_state
+    return template_state.emit_text([template_state.emit_mulmontx(out, x, y)])
+
 def emit_f_mul(out, x, y) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_mul(out, x, y))
@@ -384,6 +388,7 @@ func_dict = {
     'ref_item': ref_item,
     'emit_item_to_mont': emit_item_to_mont,
     'emit_f_copy': emit_f_copy,
+    'emit_mulmontx': emit_mulmontx,
     'emit_f_mul': emit_f_mul,
     'emit_f_sqr': emit_f_sqr,
     'emit_f_add': emit_f_add,
