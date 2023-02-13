@@ -44,6 +44,9 @@ def run_geth_g1(inp):
 def run_geth_g2(inp):
     return bench_geth(inp, "build/artifacts/ecmul/g2mul_dbl_and_add.hex")
 
+def run_geth_invmod(inp):
+    return bench_geth(inp, "build/artifacts/invmod/invmod.hex")
+
 def test_g1_subgroup_order():
     point = g1_gen()
     scalar = SUBGROUP_ORDER
@@ -90,10 +93,15 @@ def g1_tests():
     print("test g0_gen * subgroup_order == inf_point")
     test_g1_subgroup_order()
 
+def test_invmod():
+    output = run_geth_invmod('00')
+
 def main():
     #g1_tests()
     print("testing g2")
-    test_g2_1()
+    #test_g2_1()
+
+    test_invmod()
 
 if __name__ == "__main__":
     main()

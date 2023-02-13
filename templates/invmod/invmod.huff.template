@@ -611,14 +611,21 @@
 }
 
 #define macro MAIN() = takes(0) returns(0) {
+    // alloc memory that we will use (TODO only alloc as much as needed)
+    0x00
+    0x2000
+    mstore
+
     {{ emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) }}
-    {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
 
     0x00
     0x06
     {{ emit_mem_offset('MODULUS') -}}
     setmodx
 
+    {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
+
+    {{ emit_f_copy('ONE_VAL_MONT', 'ONE_VAL') -}}
     {{ emit_item_to_mont('ONE_VAL_MONT') -}}
     {{ emit_f_copy('x', 'ONE_VAL_MONT') -}}
     FqInv()
