@@ -32,7 +32,7 @@
     {{"{{"}} emit_mulmontx("{{$i.Output}}","{{ .X }}","{{ .X }}") {{"}}" -}}
 	{{- $first = 1 -}}
 	{{- end }}
-    {{ range $j := intRange 1 .S }}
+    {{ range $j := intRange 0 .S }}
     {{"{{"}} emit_mulmontx("{{$i.Output}}","{{ $i.Output }}","{{ $i.Output }}") {{"}}" -}}
     {{ end -}}
 	{{ end -}}
@@ -53,7 +53,7 @@
     setmodx
 
     {{"{{"}} emit_store_constant_32byte_aligned('ONE_VAL', 1) {{"-}}"}}
-    {{"{{"}} emit_store_constant_32byte_aligned('TWO_VAL', 2) {{"-}}"}}
+    {{"{{"}} emit_store_constant_32byte_aligned('TWO_VAL', 100) {{"-}}"}}
 
     {{"{{"}} emit_f_copy('TWO_VAL_MONT', 'TWO_VAL') {{"-}}"}}
     {{"{{"}} emit_item_to_mont('TWO_VAL_MONT') {{"-}}"}}
