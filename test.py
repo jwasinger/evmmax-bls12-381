@@ -99,9 +99,9 @@ def test_invmod():
 def main():
     #g1_tests()
     print("testing g2")
-    #test_g2_1()
+    test_g2_1()
 
-    test_invmod()
+    #test_invmod()
 
 if __name__ == "__main__":
     main()

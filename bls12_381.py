@@ -64,16 +64,15 @@ class G1ProjPoint:
         pass
 
 def fq2_mul(x, y) -> (int, int):
-    t1 = fq_mul(x[0], y[0])
-    t2 = fq_mul(x[1], y[1])
-    t0 = fq_add(x[0], x[1])
-    t3 = fq_add(y[0], y[1])
-    res_0 = fq_sub(t1, t2)
-    t1 = fq_add(t1, t2)
-    t0 = fq_mul(t0, t3)
-    res_1 = fq_sub(t0, t1)
+    t0 = fq_mul(x[0], y[0])
+    t1 = fq_mul(x[1], y[1])
+    t2 = fq_mul(x[0], y[1])
+    t3 = fq_mul(x[1], y[0])
 
-    return (res_0, res_1)
+    return (
+        fq_sub(t0, t1),
+        fq_add(t2, t3)
+    )
 
 def fq2_inv(x) -> (int, int):
     # TODO this is code pulled from go-ethereum bls12381 package.  ensure it does the same thing as the rust code
@@ -92,8 +91,8 @@ def fq2_inv(x) -> (int, int):
 
 def fq2_add(x, y) -> (int, int):
     res = (
-    x[0] + y[0],
-    x[1] + y[1])
+        fq_add(x[0], y[0]),
+        fq_add(x[1], y[1]))
     return res
 
 class G2ProjPoint:
