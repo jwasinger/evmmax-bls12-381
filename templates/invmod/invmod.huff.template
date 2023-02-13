@@ -2,6 +2,11 @@
 
 package evmmax_addchain
 
+{{ alloc_slot("MODULUS") -}}
+{{ alloc_slot("ONE_VAL") -}}
+{{ alloc_slot("ONE_VAL_MONT") -}}
+{{ alloc_slot("ZERO_VAL") -}}
+
 // Allocate Temporaries.
 {{ alloc_slot("t0") }}
 {{ alloc_slot("t1") }}
@@ -605,4 +610,16 @@ package evmmax_addchain
     {{ emit_mulmontx("t15","t15","t15") }}
 	// Step 450: z = x^0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaa9
     {{ emit_mulmontx("z","z", "t15") }}
+}
+
+#define macro MAIN() = takes(0) returns(0) {
+    {{ emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) }}
+    {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
+
+    0x00
+    0x06
+    {{ emit_mem_offset('MODULUS') -}}
+    setmodx
+
+    {{ emit_item_to_mont('ONE_VAL_MONT') -}}
 }
