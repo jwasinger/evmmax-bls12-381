@@ -23,7 +23,7 @@ def fq_mul(x, y) -> int:
     return mulmont(x, y)
 
 def fq_sqr(x) -> int:
-    return mulmont(x)
+    return mulmont(x, x)
 
 def fq_inv(x) -> int:
     # TODO implement this using fermat's little theorem with the generated addchain
@@ -64,30 +64,36 @@ class G1ProjPoint:
         pass
 
 def fq2_mul(x, y) -> (int, int):
-    res = (0, 0)
     t1 = fq_mul(x[0], y[0])
     t2 = fq_mul(x[1], y[1])
     t0 = fq_add(x[0], x[1])
     t3 = fq_add(y[0], y[1])
-    res[0] = fq_sub(t1, t2)
+    res_0 = fq_sub(t1, t2)
     t1 = fq_add(t1, t2)
     t0 = fq_mul(t0, t3)
-    res[1] = fq_sub(t0, t1)
+    res_1 = fq_sub(t0, t1)
 
-    return res
+    return (res_0, res_1)
 
 def fq2_inv(x) -> (int, int):
     # TODO this is code pulled from go-ethereum bls12381 package.  ensure it does the same thing as the rust code
-    res = (0, 0)
 
     t0 = fq_sqr(x[0])
     t1 = fq_sqr(x[1])
     t0 = fq_add(t0, t1)
     t0 = fq_inv(t0)
-    res[0] = fq_mul(t0, x[0])
-    t0 = fq_mul(t0, x[1])
-    res[1] = fq_sub(0, t0)
+    res_0 = fq_mul(t0, x[0])
+    res_1 = fq_sub(0, t0)
+    res_1 = fq_mul(x[1], res_1)
 
+    return (
+        res_0,
+        res_1)
+
+def fq2_add(x, y) -> (int, int):
+    res = (
+    x[0] + y[0],
+    x[1] + y[1])
     return res
 
 class G2ProjPoint:
