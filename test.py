@@ -70,7 +70,7 @@ def test_g1_1():
     output = run_geth_g1(inp)
 
     proj_point = (int(output[0:96], 16), int(output[96:192], 16), int(output[192:], 16))
-    z_inv = to_mont(fq_inv(to_norm(proj_point[2])))
+    z_inv = to_mont(fq_inv(proj_point[2]))
     affine_point = (to_norm(fq_mul(proj_point[0], z_inv)), to_norm(fq_mul(proj_point[1], z_inv)))
 
     assert affine_point[0] == point.x and affine_point[1] == point.y
@@ -97,9 +97,9 @@ def test_invmod():
     output = run_geth_invmod('00')
 
 def main():
-    #g1_tests()
+    g1_tests()
     print("testing g2")
-    test_g2_1()
+    #test_g2_1()
 
     #test_invmod()
 
