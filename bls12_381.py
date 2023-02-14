@@ -27,7 +27,9 @@ def fq_sqr(x) -> int:
 
 def fq_inv(x) -> int:
     # TODO implement this using fermat's little theorem with the generated addchain
-    return pow(x, -1, fq_mod)
+    x_norm = to_norm(x)
+    res = pow(x, -1, fq_mod)
+    return to_mont(res)
 
 class AffinePoint:
     def __init__(self, x, y):
@@ -75,8 +77,6 @@ def fq2_mul(x, y) -> (int, int):
     )
 
 def fq2_inv(x) -> (int, int):
-    # TODO this is code pulled from go-ethereum bls12381 package.  ensure it does the same thing as the rust code
-
     t0 = fq_sqr(x[0])
     t1 = fq_sqr(x[1])
     t0 = fq_add(t0, t1)
