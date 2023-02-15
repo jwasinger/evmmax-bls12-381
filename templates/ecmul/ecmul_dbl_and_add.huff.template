@@ -30,7 +30,10 @@
 
 {{ alloc_range('VAL_12', 1) -}}
 
-{{ alloc_slot('FP2_MUL_TEMP') -}}
+{{ alloc_slot('FP2_TEMP0') -}}
+{{ alloc_slot('FP2_TEMP1') -}}
+{{ alloc_slot('FP2_TEMP2') -}}
+{{ alloc_slot('FP2_TEMP3') -}}
 
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
     {{ emit_f_set_one('G1_GEN_Z') -}}
@@ -111,8 +114,6 @@ end1:
     {{ emit_f_mul('TEMP1', 'TEMP_POINT_X', 'TEMP_POINT_Y') -}}
     {{ emit_f_mul('OUTPUT_X', 'TEMP0', 'TEMP1') -}}
     {{ emit_f_add('OUTPUT_X', 'OUTPUT_X', 'OUTPUT_X') -}}
-
-
 {{ end_block() -}}
 }
 
@@ -139,7 +140,6 @@ end1:
     {{ emit_f_copy('TEMP_POINT_X', 'G1_GEN_X') -}}
     {{ emit_f_copy('TEMP_POINT_Y', 'G1_GEN_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'G1_GEN_Z') -}}
-
     {{ emit_f_mul('TEMP0', 'OUTPUT_X', 'TEMP_POINT_X') -}}
     {{ emit_f_mul('TEMP1', 'OUTPUT_Y', 'TEMP_POINT_Y') -}}
     {{ emit_f_mul('TEMP2', 'OUTPUT_Z', 'TEMP_POINT_Z') -}}

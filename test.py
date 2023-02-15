@@ -44,6 +44,20 @@ def run_geth_g1(inp):
 def run_geth_g2(inp):
     return bench_geth(inp, "build/artifacts/ecmul/g2mul_dbl_and_add.hex")
 
+def parse_geth_output_g2(output):
+    if len(output) == 96 * 2 * 2:
+        # it's the inf point
+        pass
+    elif len(output) == 96 * 2 * 3:
+        point = (
+            to_norm(int(output[0:96], 16)),
+            to_norm(int(output[96:192], 16)),
+            to_norm(int(output[192:288], 16)),
+            to_norm(int(output[288:384], 16)),
+            to_norm(int(output[384:480], 16)),
+            to_norm(int(output[480:576], 16)))
+        return point
+
 def run_geth_invmod(inp):
     return bench_geth(inp, "build/artifacts/invmod/invmod.hex")
 
@@ -75,13 +89,21 @@ def test_g1_1():
 
     assert affine_point[0] == point.x and affine_point[1] == point.y
 
+def parse_fq2_point(outp):
+    assert len(outp) == 192
+    x0 = hex(to_norm(int(outp[0:96], 16)))
+    x1 = hex(to_norm(int(outp[96:192], 16)))
+
+    return (x0, x1)
+
 def test_g2_1():
-    point = g2_gen()
+    inp_point = g2_gen()
     scalar = SUBGROUP_ORDER
-    inp = encode_g2mul_input(scalar, point)
+    inp = encode_g2mul_input(scalar, inp_point)
 
     output = run_geth_g2(inp)
     import pdb; pdb.set_trace()
+    point = parse_geth_output_g2(output)
     foo = 'bar'
 
 def g1_tests():
@@ -97,9 +119,9 @@ def test_invmod():
     output = run_geth_invmod('00')
 
 def main():
-    g1_tests()
+    #g1_tests()
     print("testing g2")
-    #test_g2_1()
+    test_g2_1()
 
     #test_invmod()
 
