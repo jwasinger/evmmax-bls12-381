@@ -14,10 +14,10 @@ def to_norm(val):
     return mulmont(val, 1)
 
 def fq_add(x, y) -> int:
-    return x + y % fq_mod
+    return (x + y) % fq_mod
 
 def fq_sub(x, y) -> int:
-    return x - y % fq_mod
+    return (x - y) % fq_mod
 
 def fq_mul(x, y) -> int:
     return mulmont(x, y)
@@ -105,12 +105,22 @@ class G2ProjPoint:
         self.z1 = z1
 
     def to_affine(self):
-        if self.is_inf():
-            return AffinePoint(0, 0)
+        # TODO: add back in
+        #if self.is_inf():
+        #    return AffinePoint(0, 0)
 
-        z_inv = fq2_inv(self.z)
-        return AffinePoint(fq2_mul(self.x, z_inv), fq2_mul(self.y, z_inv))
+        import pdb; pdb.set_trace()
+        z_inv = fq2_inv((self.z0, self.z1))
+        return AffinePoint(fq2_mul((self.x0, self.x1), z_inv), fq2_mul((self.y0, self.y1), z_inv))
 
+def g2_point_from_raw(raw):
+    return G2ProjPoint(to_norm(int(raw[0:96], 16)),
+    to_norm(int(raw[96:192], 16)),
+    to_norm(int(raw[192:288], 16)),
+    to_norm(int(raw[288:384], 16)),
+    to_norm(int(raw[384:480], 16)),
+    to_norm(int(raw[480:576], 16)))
+    
 g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
 g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
 g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, 1)

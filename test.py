@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont
+from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:
@@ -98,7 +98,7 @@ def parse_fq2_point(outp):
 
 def test_g2_1():
     inp_point = g2_gen()
-    scalar = SUBGROUP_ORDER
+    scalar = 1
     inp = encode_g2mul_input(scalar, inp_point)
 
     output = run_geth_g2(inp)
