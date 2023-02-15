@@ -150,6 +150,10 @@ class TemplateState:
         x_slot_0 = self.allocs[x]
         x_slot_1 = x_slot_0 + 1
 
+        if out_slot_0 == x_slot_0:
+            # TODO support this
+            raise Exception("untested input configuration")
+
         res = [
             # out[0] <- (x[0] + x[1]) * (x[0] - x[1])
             self.__emit_addmodx(out_slot_1, x_slot_0, x_slot_1),
@@ -168,17 +172,22 @@ class TemplateState:
         x_slot_1 = x_slot_0 + 1
         y_slot_0 = self.allocs[y]
         y_slot_1 = y_slot_0 + 1
-        fp2_mul_temp_slot = self.allocs['FP2_MUL_TEMP']
+
+        t0 = self.allocs['FP2_TEMP0']
+        t1 = self.allocs['FP2_TEMP1']
+        t2 = self.allocs['FP2_TEMP2']
+        t3 = self.allocs['FP2_TEMP3']
 
         res = [
-            # out[0] <- x[0] * y[0] + x[1] * y[1]
-            self.__emit_mulmontx(out_slot_0, x_slot_0, y_slot_0),
-            self.__emit_mulmontx(fp2_mul_temp_slot, x_slot_1, y_slot_1),
-            self.__emit_addmodx(out_slot_0, out_slot_0, fp2_mul_temp_slot),
+            # out[0] <- x[0] * y[0] - x[1] * y[1]
             # out[1] <- x[0] * y[1] + x[1] * y[0]
-            self.__emit_mulmontx(out_slot_1, x_slot_0, y_slot_1),
-            self.__emit_mulmontx(fp2_mul_temp_slot, x_slot_1, y_slot_0),
-            self.__emit_addmodx(out_slot_1, out_slot_1, fp2_mul_temp_slot)
+
+            self.__emit_mulmontx(t0, x_slot_0, y_slot_0),
+            self.__emit_mulmontx(t1, x_slot_1, y_slot_1),
+            self.__emit_mulmontx(t2, x_slot_0, y_slot_1),
+            self.__emit_mulmontx(t3, x_slot_1, y_slot_0),
+            self.__emit_submodx(out_slot_0, t0, t1),
+            self.__emit_addmodx(out_slot_1, t2, t3)
         ]
         return res
 
