@@ -31,7 +31,7 @@ def fq_inv(x) -> int:
     res = pow(x, -1, fq_mod)
     return to_mont(res)
 
-class AffinePoint:
+class G1AffinePoint:
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -47,10 +47,10 @@ class G1ProjPoint:
 
     def to_affine(self):
         if self.is_inf():
-            return AffinePoint(0, 0)
+            return G1AffinePoint(0, 0)
 
         z_inv = fq_inv(self.z)
-        return AffinePoint(fq_mul(self.x, z_inv), fq_mul(self.y, z_inv))
+        return G1AffinePoint(fq_mul(self.x, z_inv), fq_mul(self.y, z_inv))
 
     def add(p1, p2):
         pass
@@ -95,6 +95,16 @@ def fq2_add(x, y) -> (int, int):
         fq_add(x[1], y[1]))
     return res
 
+class G2AffinePoint:
+    def __init__(self, x0, x1, y0, y1):
+        self.x0 = x0
+        self.x1 = x1
+        self.y0 = y0
+        self.y1 = y1
+
+    def eq(self, other) -> bool:
+        return self.x0 == other.x0 and self.x1 == other.x1 and self.y0 == other.y0 and self.y1 == other.y1
+
 class G2ProjPoint:
     def __init__(self, x0, x1, y0, y1, z0, z1):
         self.x0 = x0
@@ -108,10 +118,10 @@ class G2ProjPoint:
         # TODO: add back in
         #if self.is_inf():
         #    return AffinePoint(0, 0)
-
-        import pdb; pdb.set_trace()
         z_inv = fq2_inv((self.z0, self.z1))
-        return AffinePoint(fq2_mul((self.x0, self.x1), z_inv), fq2_mul((self.y0, self.y1), z_inv))
+        x = fq2_mul((self.x0, self.x1), z_inv)
+        y = fq2_mul((self.y0, self.y1), z_inv)
+        return G2AffinePoint(x[0], x[1], y[0], y[1])
 
 def g2_point_from_raw(raw):
     return G2ProjPoint(to_norm(int(raw[0:96], 16)),
@@ -133,12 +143,16 @@ g2_gen_z_0 = 1
 g2_gen_z_1 = 0
 
 g2_gen_point = G2ProjPoint(g2_gen_x_0, g2_gen_x_1, g2_gen_y_0, g2_gen_y_1, g2_gen_z_0, g2_gen_z_1)
+g2_gen_point_affine = G2AffinePoint(g2_gen_x_0, g2_gen_x_1, g2_gen_y_0, g2_gen_y_1)
 
 def g1_gen():
     return g1_gen_point
 
 def g2_gen():
     return g2_gen_point
+
+def g2_gen_affine():
+    return g2_gen_point_affine
 
 def run_tests():
     # test g1_gen + inf == g1_gen

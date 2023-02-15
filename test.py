@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul
+from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:
@@ -49,7 +49,7 @@ def parse_geth_output_g2(output):
         # it's the inf point
         pass
     elif len(output) == 96 * 2 * 3:
-        point = (
+        point = G2ProjPoint(
             to_norm(int(output[0:96], 16)),
             to_norm(int(output[96:192], 16)),
             to_norm(int(output[192:288], 16)),
@@ -96,15 +96,19 @@ def parse_fq2_point(outp):
 
     return (x0, x1)
 
+# test g2_gen * 1 == g2_gen
 def test_g2_1():
     inp_point = g2_gen()
     scalar = 1
     inp = encode_g2mul_input(scalar, inp_point)
 
     output = run_geth_g2(inp)
-    import pdb; pdb.set_trace()
     point = parse_geth_output_g2(output)
-    foo = 'bar'
+    assert point.to_affine().eq(g2_gen_affine())
+
+# test g2_gen * 2 == g2_gen + g2_gen
+def test_g2_2():
+    pass
 
 def g1_tests():
     print("testing g1:")
