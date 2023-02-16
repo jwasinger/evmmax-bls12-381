@@ -191,6 +191,31 @@ class TemplateState:
         ]
         return res
 
+    def emit_fp2_mul_debug(self, out, x, y):
+        out_slot_0 = self.allocs[out]
+        out_slot_1 = out_slot_0 + 1
+        x_slot_0 = self.allocs[x]
+        x_slot_1 = x_slot_0 + 1
+        y_slot_0 = self.allocs[y]
+        y_slot_1 = y_slot_0 + 1
+
+        t0 = self.allocs['FP2_TEMP0']
+        t1 = self.allocs['FP2_TEMP1']
+        t2 = self.allocs['FP2_TEMP2']
+        t3 = self.allocs['FP2_TEMP3']
+
+        res = [
+            # out[0] <- x[0] * y[0] - x[1] * y[1]
+            # out[1] <- x[0] * y[1] + x[1] * y[0]
+            self.__emit_mulmontx(t0, x_slot_0, y_slot_0),
+            self.__emit_mulmontx(t1, x_slot_1, y_slot_1),
+            self.__emit_mulmontx(t2, x_slot_0, y_slot_1),
+            self.__emit_mulmontx(t3, x_slot_1, y_slot_0),
+            self.__emit_submodx(out_slot_0, t0, t1),
+            self.__emit_addmodx(out_slot_1, t2, t3),
+        ]
+        return res
+
     def emit_f_add(self, out, x, y):
         if self.item_size == 1:
             return [self.emit_addmodx(out, x, y)]
@@ -208,6 +233,12 @@ class TemplateState:
             return [self.emit_mulmontx(out, x, y)]
         else:
             return self.emit_fp2_mul(out, x, y)
+
+    def emit_f_mul_debug(self, out, x, y):
+        if self.item_size == 1:
+            return [self.emit_mulmontx(out, x, y)]
+        else:
+            return self.emit_fp2_mul_debug(out, x, y)
 
     def emit_f_sub(self, out, x, y):
         if self.item_size == 1:
@@ -356,6 +387,10 @@ def emit_f_mul(out, x, y) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_mul(out, x, y))
 
+def emit_f_mul_debug(out, x, y) -> str:
+    global template_state
+    return template_state.emit_text(template_state.emit_f_mul_debug(out, x, y))
+
 def emit_f_sqr(out, x) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_mul(out, x, x))
@@ -399,6 +434,7 @@ func_dict = {
     'emit_f_copy': emit_f_copy,
     'emit_mulmontx': emit_mulmontx,
     'emit_f_mul': emit_f_mul,
+    'emit_f_mul_debug': emit_f_mul_debug,
     'emit_f_sqr': emit_f_sqr,
     'emit_f_add': emit_f_add,
     'emit_f_sub': emit_f_sub, 

@@ -71,10 +71,11 @@ def fq2_mul(x, y) -> (int, int):
     t2 = fq_mul(x[0], y[1])
     t3 = fq_mul(x[1], y[0])
 
-    return (
+    res = (
         fq_sub(t0, t1),
         fq_add(t2, t3)
     )
+    return res
 
 def fq2_inv(x) -> (int, int):
     t0 = fq_sqr(x[0])

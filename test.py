@@ -108,7 +108,25 @@ def test_g2_1():
 
 # test g2_gen * 2 == g2_gen + g2_gen
 def test_g2_2():
-    pass
+    inp_point = g2_gen()
+    scalar = 2
+    inp = encode_g2mul_input(scalar, inp_point)
+
+    output = run_geth_g2(inp)
+    point = parse_geth_output_g2(output)
+    # TODO provide a reference implementation and don't hardcode this?
+    expected = G2ProjPoint(to_mont(0x0bb3e1c3796e71ebe516f4449d39c68ee572aef100fceedf48c5bc825364bb5ccc83c2a8f458bb024402ffab3f50c7d1), to_mont(0x05285ede7fa45e34d4fa92a06282ea7846bb859c7154d3fa68ccffb64661256a634ef54bd599d1c93ffa41dba63af93f), to_mont(0x015016be80bc15f6c34b030c6b68d7a8f77c3b3186b5a362cf69317130afee1f17a26a5082820c76856385b4818fb7bb), to_mont(0x01dbb9f9288d0c2d4c5e0be34666e31addcaffc8c44a05e5642b0fce99636d0d43163afd50796c522b0ad1b671abc329), to_mont(0x18d6bf1cada2e598b89b0c67738ead2c050de4d1153adc11d57b1f4086565efc585924ad71875924ac932fcc5c866239), to_mont(0x12cf8d88349a270cd34d0ad92b789a8f1d10eb3c8afe4aecd963432b75ad1925c394df3c9f246203d464134ca6f6ccb5))
+    assert expected.to_affine().eq(point.to_affine())
+
+def test_g2_group_order():
+    inp_point = g2_gen()
+    scalar = SUBGROUP_ORDER
+    inp = encode_g2mul_input(scalar, inp_point)
+
+    output = run_geth_g2(inp)
+    point = parse_geth_output_g2(output)
+    import pdb; pdb.set_trace()
+
 
 def g1_tests():
     print("testing g1:")
@@ -123,9 +141,14 @@ def test_invmod():
     output = run_geth_invmod('00')
 
 def main():
+    # reference code tests -----------
+
+    # EVM implementation tests -------
     #g1_tests()
-    print("testing g2")
+    #print("testing g2")
     test_g2_1()
+    test_g2_2()
+    test_g2_group_order()
 
     #test_invmod()
 
