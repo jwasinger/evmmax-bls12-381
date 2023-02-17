@@ -1,4 +1,4 @@
-{{ alloc_slot('ZERO_VAL') -}}
+{{ alloc_range('ZERO_VAL', 1) -}}
 {{ alloc_slot('ONE_VAL') -}}
 {{ alloc_slot('MODULUS') -}}
 
@@ -290,7 +290,7 @@ double_step_{{i}}:
 
 // convert the output to canonical form
 end:
-    //InfCheck()
+    InfCheck()
     //CONVERT_OUTPUT_TO_NORM()
 
     // TODO
