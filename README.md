@@ -9,9 +9,14 @@ Download the submodules:
 git submodule update --init
 ```
 
+Build Geth:
+```
+(cd go-ethereum-eip5843 && make all)
+```
+
 Build Huff compiler:
 ```
-cd huff-rs && cargo build --release
+(cd huff-rs && cargo build --release)
 ```
 
 Build the contracts:
