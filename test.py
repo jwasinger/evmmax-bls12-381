@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
+from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:
@@ -30,7 +30,6 @@ def bench_geth(inp: str, code_file: str):
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
-    print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise Exception("geth exec error: {}".format(result.stderr))
@@ -127,28 +126,36 @@ def test_g2_group_order():
     assert output == '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
 def g1_tests():
-    print("testing g1:")
-    print("hardcoded test case 1")
+    print("testing g1 mul")
     test_g1_1()
-    print("hardcoded test case 2")
     test_g1_3()
-    print("test g0_gen * subgroup_order == inf_point")
     test_g1_subgroup_order()
 
+def pad_invmod_input(val):
+    hex_val = hex(val)[2:]
+    if len(hex_val) < 48 * 2:
+        return '0' * (48 * 2 - len(hex_val)) + hex_val
+    else:
+        return hex_val
+
 def test_invmod():
-    output = run_geth_invmod('00')
+    output = int(run_geth_invmod(pad_invmod_input(1)), 16)
+    assert output == 1
+
+    output = int(run_geth_invmod(pad_invmod_input(2)), 16)
+    assert output * 2 % fq_mod == 1
+
+    output = int(run_geth_invmod(pad_invmod_input(20001)), 16)
+    assert output * 20001 % fq_mod == 1
 
 def main():
-    # reference code tests -----------
-
-    # EVM implementation tests -------
     g1_tests()
-    #print("testing g2")
+    print("testing g2 mul")
     test_g2_1()
     test_g2_2()
     test_g2_group_order()
-
-    #test_invmod()
+    print("testing bls12381 fq invmod")
+    test_invmod()
 
 if __name__ == "__main__":
     main()

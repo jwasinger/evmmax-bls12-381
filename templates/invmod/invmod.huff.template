@@ -668,15 +668,19 @@
     setmodx
 
     {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
+
+    0x30
+    0x00
+    {{ emit_mem_offset('x') -}}
+    calldatacopy
+
+    {{ emit_item_to_mont('x') -}}
+
     {{ emit_store_constant_32byte_aligned('TWO_VAL', 100) -}}
 
-    {{ emit_f_copy('TWO_VAL_MONT', 'TWO_VAL') -}}
-    {{ emit_item_to_mont('TWO_VAL_MONT') -}}
-    {{ emit_f_copy('x', 'TWO_VAL_MONT') -}}
     FqInv()
 
-    {{ emit_mulmontx('z', 'z', 'x') }}
-
+    // convert output to canonical form
     {{ emit_mulmontx('z', 'z', 'ONE_VAL') }}
 
     0x30
