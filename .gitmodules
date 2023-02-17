@@ -4,6 +4,6 @@
 [submodule "go-ethereum-eip5843"]
 	path = go-ethereum-eip5843
 	url = https://github.com/jwasinger/go-ethereum
-[submodule "templates/inv_mod/addchain"]
-	path = templates/inv_mod/addchain
+[submodule "templates/invmod/addchain"]
+	path = templates/invmod/addchain
 	url = https://github.com/jwasinger/addchain
