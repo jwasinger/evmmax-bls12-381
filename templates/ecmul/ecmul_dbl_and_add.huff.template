@@ -1,4 +1,4 @@
-{{ alloc_slot('ZERO_VAL') -}}
+{{ alloc_range('ZERO_VAL', 1) -}}
 {{ alloc_slot('ONE_VAL') -}}
 {{ alloc_slot('MODULUS') -}}
 
@@ -28,7 +28,13 @@
 {{ ref_item('OUTPUT_TEMP_Y', 'TEMP6') -}}
 {{ ref_item('OUTPUT_TEMP_Z', 'TEMP7') -}}
 
-{{ alloc_range('VAL_12', 1) -}}
+{{ alloc_slot('VAL_12') -}}
+{{ alloc_slot('VAL_12_1') -}}
+
+{{ alloc_slot('FP2_TEMP0') -}}
+{{ alloc_slot('FP2_TEMP1') -}}
+{{ alloc_slot('FP2_TEMP2') -}}
+{{ alloc_slot('FP2_TEMP3') -}}
 
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
     {{ emit_f_set_one('G1_GEN_Z') -}}
@@ -58,7 +64,16 @@
 
     {{ emit_check_val_nonzero('OUTPUT_Y') -}}
 
+    0x00
+    eq
+    not
+    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    eq
+
+    // stack: OUTPUT_Y != 0, OUTPUT_X | OUTPUT_Z == 0
     and
+    0x00
+    eq
     end1 jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537
@@ -81,14 +96,13 @@ end1:
     {{ emit_f_copy('TEMP_POINT_Y', 'OUTPUT_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'OUTPUT_Z') -}}
 
-    {{ emit_f_sqr('TEMP0', 'TEMP_POINT_Y') -}}
+    {{ emit_f_mul('TEMP0', 'TEMP_POINT_Y', 'TEMP_POINT_Y') -}}
     {{ emit_f_add('OUTPUT_Z', 'TEMP0', 'TEMP0') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_mul('TEMP1', 'TEMP_POINT_Y', 'TEMP_POINT_Z') -}}
-    {{ emit_f_sqr('TEMP2', 'TEMP_POINT_Z') -}}
+    {{ emit_f_mul('TEMP2', 'TEMP_POINT_Z', 'TEMP_POINT_Z') -}}
     {{ emit_f_mul('TEMP2', 'TEMP2', 'VAL_12') -}}
-
     {{ emit_f_mul('OUTPUT_X', 'TEMP2', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Y', 'TEMP0', 'TEMP2') -}}
     {{ emit_f_mul('OUTPUT_Z', 'TEMP1', 'OUTPUT_Z') -}}
@@ -126,7 +140,6 @@ end1:
     {{ emit_f_copy('TEMP_POINT_X', 'G1_GEN_X') -}}
     {{ emit_f_copy('TEMP_POINT_Y', 'G1_GEN_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'G1_GEN_Z') -}}
-
     {{ emit_f_mul('TEMP0', 'OUTPUT_X', 'TEMP_POINT_X') -}}
     {{ emit_f_mul('TEMP1', 'OUTPUT_Y', 'TEMP_POINT_Y') -}}
     {{ emit_f_mul('TEMP2', 'OUTPUT_Z', 'TEMP_POINT_Z') -}}
@@ -196,16 +209,17 @@ end1:
     //stack: scalar
 
     // copy the point (affine)
-    0x60
+    {{ AFFINE_POINT_SIZE }}
     0x20
     {{ emit_mem_offset('G1_GEN_X') -}}
     calldatacopy
+
     //stack: scalar
 
     {{ emit_item_to_mont('G1_GEN_X') -}}
     {{ emit_item_to_mont('G1_GEN_Y') -}}
 
-    {{ emit_store_constant_32byte_aligned('VAL_12', 12) -}}
+    {{ emit_set_val_12('VAL_12') -}}
     {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
 
     //VAL_12 < 12
@@ -249,13 +263,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     // TODO: double_step_{{i}} rjumpi
     double_step_{{i}} jumpi
 
-    {% if i == 254 %}
-        DoubleAndAdd()
-    {% else %}
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    {% endif %}
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01

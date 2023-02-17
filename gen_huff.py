@@ -3,11 +3,13 @@ import os
 import math
 from jinja2.nativetypes import NativeEnvironment
 
-ITEM_SIZE = 1
-
 class TemplateState:
-    def __init__(self):
-        self.item_size = ITEM_SIZE
+    def __init__(self, g2=False):
+        if g2:
+            self.item_size = 2
+        else:
+            self.item_size = 1
+
         self.free_slot = 0
         self.evmmax_slot_size = 48 # hardcode to bls for now
         self.evmmax_mem_start = 0
@@ -19,6 +21,7 @@ class TemplateState:
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
 
+        #import pdb; pdb.set_trace()
         self.allocs[symbol] = self.free_slot
         self.free_slot += count * self.item_size
 
@@ -49,7 +52,12 @@ class TemplateState:
         ]
 
     def emit_fp2_set_one(self, out):
-        pass
+        out_slot = self.allocs[out]
+
+        return [
+            self.__emit_addmodx(out_slot, self.allocs['ONE_VAL'], self.allocs['ZERO_VAL']),
+            self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+        ]
 
     def emit_f_set_one(self, out):
         if self.item_size == 1:
@@ -64,8 +72,14 @@ class TemplateState:
             self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
-    def emit_fp2_set_one(self, out):
-        pass
+
+    def emit_fp2_set_zero(self, out):
+        out_slot = self.allocs[out]
+
+        return [
+            self.__emit_addmodx(out_slot, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL']),
+            self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
+        ]
 
     def emit_f_set_zero(self, out):
         if self.item_size == 1:
@@ -101,18 +115,87 @@ class TemplateState:
         return self.__emit_submodx(out_slot, x_slot, y_slot)
 
     def emit_f_copy(self, output_item, input_item):
-        output_item_slot = self.allocs[output_item] * self.item_size
-        input_item_slot = self.allocs[input_item] * self.item_size
+        output_item_slot = self.allocs[output_item]
+        input_item_slot = self.allocs[input_item]
         res = []
         for i in range(self.item_size):
-            res.append(self.__emit_addmodx(output_item_slot * self.item_size + i, input_item_slot * self.item_size + i, self.allocs['ZERO_VAL']))
+            res.append(self.__emit_addmodx(output_item_slot + i, input_item_slot + i, self.allocs['ZERO_VAL']))
+        return res
+
+    def emit_fp2_add(self, out, x, y):
+        out_slot = self.allocs[out]
+        x_slot = self.allocs[x]
+        y_slot = self.allocs[y]
+
+        res = [
+            self.__emit_addmodx(out_slot, x_slot, y_slot),
+            self.__emit_addmodx(out_slot + 1, x_slot + 1, y_slot + 1)
+        ]
+        return res
+
+    def emit_fp2_sub(self, out, x, y):
+        out_slot = self.allocs[out]
+        x_slot = self.allocs[x]
+        y_slot = self.allocs[y]
+
+        res = [
+            self.__emit_submodx(out_slot, x_slot, y_slot),
+            self.__emit_submodx(out_slot + 1, x_slot + 1, y_slot + 1)
+        ]
+        return res
+
+    def emit_fp2_sqr(self, out, x):
+        out_slot_0 = self.allocs[out]
+        out_slot_1 = out_slot_0 + 1
+        x_slot_0 = self.allocs[x]
+        x_slot_1 = x_slot_0 + 1
+
+        if out_slot_0 == x_slot_0:
+            # TODO support this
+            raise Exception("untested input configuration")
+
+        res = [
+            # out[0] <- (x[0] + x[1]) * (x[0] - x[1])
+            self.__emit_addmodx(out_slot_1, x_slot_0, x_slot_1),
+            self.__emit_submodx(out_slot_0, x_slot_0, x_slot_1),
+            self.__emit_mulmontx(out_slot_0, out_slot_0, out_slot_1),
+            # out[1] <- 2 * x[0] * x[1]
+            self.__emit_mulmontx(out_slot_1, x_slot_0, x_slot_1),
+            self.__emit_addmodx(out_slot_1, out_slot_1, out_slot_1)
+        ]
+        return res
+
+    def emit_fp2_mul(self, out, x, y):
+        out_slot_0 = self.allocs[out]
+        out_slot_1 = out_slot_0 + 1
+        x_slot_0 = self.allocs[x]
+        x_slot_1 = x_slot_0 + 1
+        y_slot_0 = self.allocs[y]
+        y_slot_1 = y_slot_0 + 1
+
+        t0 = self.allocs['FP2_TEMP0']
+        t1 = self.allocs['FP2_TEMP1']
+        t2 = self.allocs['FP2_TEMP2']
+        t3 = self.allocs['FP2_TEMP3']
+
+        res = [
+            # out[0] <- x[0] * y[0] - x[1] * y[1]
+            # out[1] <- x[0] * y[1] + x[1] * y[0]
+
+            self.__emit_mulmontx(t0, x_slot_0, y_slot_0),
+            self.__emit_mulmontx(t1, x_slot_1, y_slot_1),
+            self.__emit_mulmontx(t2, x_slot_0, y_slot_1),
+            self.__emit_mulmontx(t3, x_slot_1, y_slot_0),
+            self.__emit_submodx(out_slot_0, t0, t1),
+            self.__emit_addmodx(out_slot_1, t2, t3)
+        ]
         return res
 
     def emit_f_add(self, out, x, y):
         if self.item_size == 1:
             return [self.emit_addmodx(out, x, y)]
         else:
-            return self.emit_fp2_add(output_item, input_item)
+            return self.emit_fp2_add(out, x, y)
 
     def emit_f_sqr(self, out, x):
         if self.item_size == 1:
@@ -159,7 +242,8 @@ class TemplateState:
             res.append('tomontx')
 
         return res
-    def emit_check_val_nonzero(self, item):
+    
+    def __emit_check_fp2_nonzero(self, item):
         res = [
             self.emit_mem_offset(item),
             'mload',
@@ -167,17 +251,68 @@ class TemplateState:
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
-            self.emit_mem_offset(item, offset=64),
+            'or',
+            self.emit_mem_offset(item),
             'mload',
-            self.emit_mem_offset(item, offset=96),
+            self.emit_mem_offset(item, offset=32),
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
-            'and']
+            'or',
+            'or'
+            ]
 
         return res
 
-    # TODO change name 32byte->slot aligned
+    def __emit_check_fp_nonzero(self, item):
+        res = [
+            self.emit_mem_offset(item),
+            'mload',
+            self.emit_mem_offset(item, offset=32),
+            'mload',
+            '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
+            'and',
+            'or'
+            ]
+
+        return res
+
+    def emit_check_val_nonzero(self, item):
+        if self.item_size == 1:
+            return self.__emit_check_fp_nonzero(item)
+        else:
+            return self.__emit_check_fp2_nonzero(item)
+
+    def emit_set_val_12_fq2(self, output):
+        output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
+        res = []
+
+        res.append('0xc')
+        res.append(hex(output_offset + 16))
+        res.append('mstore')
+        res.append('0xc')
+        res.append(hex(output_offset + 48 + 16))
+        res.append('mstore')
+
+        return res
+
+    def emit_set_val_12_fq(self, output):
+        output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
+        res = []
+
+        res.append('0xc')
+        res.append(hex(output_offset + 16))
+        res.append('mstore')
+
+        return res
+
+    def emit_set_val_12(self, output):
+        if self.item_size == 1:
+            return self.emit_set_val_12_fq(output)
+        else:
+            return self.emit_set_val_12_fq2(output)
+
+    # TODO change name to store_constant_at_slot_offset or something similar
     def emit_store_constant_32byte_aligned(self, output, val):
         output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
         res = []
@@ -202,7 +337,7 @@ class TemplateState:
 
         return res
 
-template_state = TemplateState()
+template_state = None
 
 def start_block():
     global template_state
@@ -242,6 +377,10 @@ def emit_f_sub(out, x, y) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_sub(out, x, y))
 
+def emit_mulmontx(out, x, y) -> str:
+    global template_state
+    return template_state.emit_text([template_state.emit_mulmontx(out, x, y)])
+
 def emit_f_mul(out, x, y) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_mul(out, x, y))
@@ -279,6 +418,10 @@ def ref_item(new_name, old_name):
     template_state.ref_item(new_name, old_name)
     return ''
 
+def emit_set_val_12(output):
+    global template_state
+    return template_state.emit_text(template_state.emit_set_val_12(output))
+
 func_dict = {
     'alloc_range': alloc_range,
     'alloc_slot': alloc_slot,
@@ -287,6 +430,7 @@ func_dict = {
     'ref_item': ref_item,
     'emit_item_to_mont': emit_item_to_mont,
     'emit_f_copy': emit_f_copy,
+    'emit_mulmontx': emit_mulmontx,
     'emit_f_mul': emit_f_mul,
     'emit_f_sqr': emit_f_sqr,
     'emit_f_add': emit_f_add,
@@ -295,14 +439,20 @@ func_dict = {
     'emit_f_set_one': emit_f_set_one,
     'emit_f_set_zero': emit_f_set_zero,
     'emit_f_copy': emit_f_copy,
+    'emit_set_val_12': emit_set_val_12,
     'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
     'emit_check_val_nonzero': emit_check_val_nonzero,
 }
 
 def main():
     global template_state
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         raise Exception("bad argument count")
+
+    if sys.argv[3] == 'G1':
+        template_state = TemplateState()
+    else:
+        template_state = TemplateState(g2=True)
 
     env = NativeEnvironment()
 
@@ -314,7 +464,7 @@ def main():
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
     t.globals.update(func_dict)
-    result = t.render(AFFINE_POINT_SIZE='0x60', PROJ_POINT_SIZE='0x90', exponent_bits=exponent_bits, template_state=template_state)
+    result = t.render(AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)

@@ -1,66 +1,87 @@
 // TODO remove unused range
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
-    __addmodx(s5,s1,s0)
-0xf0
+    __addmodx(s8,s2,s0)
+__addmodx(s9,s0,s0)
+0x180
+dup1
+tomontx
+0x1b0
 dup1
 tomontx
 }
 
 #define macro InfCheckSetZero() = takes(0) returns(0) {
-__addmodx(s6,s0,s0)
-    __addmodx(s7,s0,s0)
+__addmodx(s10,s0,s0)
+    __addmodx(s11,s1,s0)
+    __addmodx(s12,s0,s0)
+    __addmodx(s13,s1,s0)
     }
 
 #define macro InfCheck() = takes(0) returns(0) {
 // if OUTPUT_X == 0, OUTPUT_Y != 0, OUTPUT_Z == 0:
     //   OUTPUT <- (0, 1, 0) return (0, 0) from the contract
 
-    0x120
-    mload
-    0x140
-    mload
-    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
-    and
-    0x160
-    mload
-    0x180
-    mload
-    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
-    and
-    and
-    0x180
-    mload
-    0x1a0
-    mload
-    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
-    and
-    0x1c0
-    mload
     0x1e0
     mload
+    0x200
+    mload
     0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
+    or
+    0x1e0
+    mload
+    0x200
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
+    or
+    or
+    0x2a0
+    mload
+    0x2c0
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    or
+    0x2a0
+    mload
+    0x2c0
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
+    and
+    or
+    or
     or
     0x00
     eq
 
     // stack: OUTPUT_X | OUTPUT_Z == 0
 
-    0x150
+    0x240
     mload
-    0x170
-    mload
-    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
-    and
-    0x190
-    mload
-    0x1b0
+    0x260
     mload
     0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
+    or
+    0x240
+    mload
+    0x260
+    mload
+    0xffffffffffffffffffffffffffffffff00000000000000000000000000000000
     and
+    or
+    or
+    0x00
+    eq
+    not
+    0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    eq
+
+    // stack: OUTPUT_Y != 0, OUTPUT_X | OUTPUT_Z == 0
     and
+    0x00
+    eq
     end1 jumpi
 
     // it's the infinity point, return (0, 0) per eip 2537
@@ -68,8 +89,8 @@ __addmodx(s6,s0,s0)
     // ops are in the same macro
     InfCheckSetZero()
 
-    0x60
-    0x120
+    0xc0
+    0x1e0
     
     return
 end1:
@@ -78,27 +99,84 @@ end1:
 // OUTPUT_SLOT <- OUTPUT_SLOT * 2
 #define macro DoubleStep() = takes(0) returns(0) {
 // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
-    __addmodx(s9,s6,s0)
-    __addmodx(s10,s7,s0)
-    __addmodx(s11,s8,s0)
-    __mulmontx(s12,s10,s10)
-    __addmodx(s8,s12,s12)
-    __addmodx(s8,s8,s8)
-    __addmodx(s8,s8,s8)
-    __mulmontx(s13,s10,s11)
-    __mulmontx(s14,s11,s11)
-    __mulmontx(s14,s14,s20)
-    __mulmontx(s6,s14,s8)
-    __addmodx(s7,s12,s14)
-    __mulmontx(s8,s13,s8)
-    __addmodx(s13,s14,s14)
-    __addmodx(s14,s13,s14)
-    __submodx(s12,s12,s14)
-    __mulmontx(s7,s12,s7)
-    __addmodx(s7,s6,s7)
-    __mulmontx(s13,s9,s10)
-    __mulmontx(s6,s12,s13)
-    __addmodx(s6,s6,s6)
+    __addmodx(s16,s10,s0)
+    __addmodx(s17,s11,s0)
+    __addmodx(s18,s12,s0)
+    __addmodx(s19,s13,s0)
+    __addmodx(s20,s14,s0)
+    __addmodx(s21,s15,s0)
+    __mulmontx(s40,s18,s18)
+    __mulmontx(s41,s19,s19)
+    __mulmontx(s42,s18,s19)
+    __mulmontx(s43,s19,s18)
+    __submodx(s22,s40,s41)
+    __addmodx(s23,s42,s43)
+    __addmodx(s14,s22,s22)
+    __addmodx(s15,s23,s23)
+    __addmodx(s14,s14,s14)
+    __addmodx(s15,s15,s15)
+    __addmodx(s14,s14,s14)
+    __addmodx(s15,s15,s15)
+    __mulmontx(s40,s18,s20)
+    __mulmontx(s41,s19,s21)
+    __mulmontx(s42,s18,s21)
+    __mulmontx(s43,s19,s20)
+    __submodx(s24,s40,s41)
+    __addmodx(s25,s42,s43)
+    __mulmontx(s40,s20,s20)
+    __mulmontx(s41,s21,s21)
+    __mulmontx(s42,s20,s21)
+    __mulmontx(s43,s21,s20)
+    __submodx(s26,s40,s41)
+    __addmodx(s27,s42,s43)
+    __mulmontx(s40,s26,s38)
+    __mulmontx(s41,s27,s39)
+    __mulmontx(s42,s26,s39)
+    __mulmontx(s43,s27,s38)
+    __submodx(s26,s40,s41)
+    __addmodx(s27,s42,s43)
+    __mulmontx(s40,s26,s14)
+    __mulmontx(s41,s27,s15)
+    __mulmontx(s42,s26,s15)
+    __mulmontx(s43,s27,s14)
+    __submodx(s10,s40,s41)
+    __addmodx(s11,s42,s43)
+    __addmodx(s12,s22,s26)
+    __addmodx(s13,s23,s27)
+    __mulmontx(s40,s24,s14)
+    __mulmontx(s41,s25,s15)
+    __mulmontx(s42,s24,s15)
+    __mulmontx(s43,s25,s14)
+    __submodx(s14,s40,s41)
+    __addmodx(s15,s42,s43)
+    __addmodx(s24,s26,s26)
+    __addmodx(s25,s27,s27)
+    __addmodx(s26,s24,s26)
+    __addmodx(s27,s25,s27)
+    __submodx(s22,s22,s26)
+    __submodx(s23,s23,s27)
+    __mulmontx(s40,s22,s12)
+    __mulmontx(s41,s23,s13)
+    __mulmontx(s42,s22,s13)
+    __mulmontx(s43,s23,s12)
+    __submodx(s12,s40,s41)
+    __addmodx(s13,s42,s43)
+    __addmodx(s12,s10,s12)
+    __addmodx(s13,s11,s13)
+    __mulmontx(s40,s16,s18)
+    __mulmontx(s41,s17,s19)
+    __mulmontx(s42,s16,s19)
+    __mulmontx(s43,s17,s18)
+    __submodx(s24,s40,s41)
+    __addmodx(s25,s42,s43)
+    __mulmontx(s40,s22,s24)
+    __mulmontx(s41,s23,s25)
+    __mulmontx(s42,s22,s25)
+    __mulmontx(s43,s23,s24)
+    __submodx(s10,s40,s41)
+    __addmodx(s11,s42,s43)
+    __addmodx(s10,s10,s10)
+    __addmodx(s11,s11,s11)
     }
 
 #define fn Double() = takes(0) returns(0) {
@@ -111,65 +189,181 @@ end1:
 }
 
 #define macro InitOutput() = takes(0) returns(0) {
-    __addmodx(s6,s0,s0)
-__addmodx(s7,s1,s0)
-0x150
+    __addmodx(s10,s0,s0)
+__addmodx(s11,s0,s0)
+__addmodx(s12,s2,s0)
+__addmodx(s13,s0,s0)
+0x240
 dup1
 tomontx
-__addmodx(s8,s0,s0)
+0x270
+dup1
+tomontx
+__addmodx(s14,s0,s0)
+__addmodx(s15,s0,s0)
 }
 
 // OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
 #define macro AddStep() = takes(0) returns(0) {
 // copy G1_GEN into TEMP_POINT_(x/y/z)
-    __addmodx(s9,s3,s0)
-    __addmodx(s10,s4,s0)
-    __addmodx(s11,s5,s0)
-    __mulmontx(s12,s6,s9)
-    __mulmontx(s13,s7,s10)
-    __mulmontx(s14,s8,s11)
-    __addmodx(s15,s6,s7)
-    __addmodx(s16,s9,s10)
-    __mulmontx(s15,s15,s16)
-    __addmodx(s16,s12,s13)
-    __submodx(s15,s15,s16)
-    __addmodx(s16,s7,s8)
-    __addmodx(s17,s10,s11)
-    __mulmontx(s16,s16,s17)
-    __addmodx(s17,s13,s14)
-    __submodx(s16,s16,s17)
-    __addmodx(s17,s6,s8)
-    __addmodx(s18,s9,s11)
-    __mulmontx(s17,s17,s18)
-    __addmodx(s18,s12,s14)
-    __submodx(s18,s17,s18)
-    __addmodx(s17,s12,s12)
-    __addmodx(s12,s17,s12)
-    __mulmontx(s14,s14,s20)
-    __addmodx(s19,s13,s14)
-    __submodx(s13,s13,s14)
-    __mulmontx(s18,s18,s20)
-    __mulmontx(s17,s16,s18)
-    __mulmontx(s14,s15,s13)
-    __submodx(s17,s14,s17)
-    __mulmontx(s18,s18,s12)
-    __mulmontx(s13,s13,s19)
-    __addmodx(s18,s13,s18)
-    __mulmontx(s12,s12,s15)
-    __mulmontx(s19,s19,s16)
-    __addmodx(s19,s19,s12)
+    __addmodx(s16,s4,s0)
+    __addmodx(s17,s5,s0)
+    __addmodx(s18,s6,s0)
+    __addmodx(s19,s7,s0)
+    __addmodx(s20,s8,s0)
+    __addmodx(s21,s9,s0)
+    __mulmontx(s40,s10,s16)
+    __mulmontx(s41,s11,s17)
+    __mulmontx(s42,s10,s17)
+    __mulmontx(s43,s11,s16)
+    __submodx(s22,s40,s41)
+    __addmodx(s23,s42,s43)
+    __mulmontx(s40,s12,s18)
+    __mulmontx(s41,s13,s19)
+    __mulmontx(s42,s12,s19)
+    __mulmontx(s43,s13,s18)
+    __submodx(s24,s40,s41)
+    __addmodx(s25,s42,s43)
+    __mulmontx(s40,s14,s20)
+    __mulmontx(s41,s15,s21)
+    __mulmontx(s42,s14,s21)
+    __mulmontx(s43,s15,s20)
+    __submodx(s26,s40,s41)
+    __addmodx(s27,s42,s43)
+    __addmodx(s28,s10,s12)
+    __addmodx(s29,s11,s13)
+    __addmodx(s30,s16,s18)
+    __addmodx(s31,s17,s19)
+    __mulmontx(s40,s28,s30)
+    __mulmontx(s41,s29,s31)
+    __mulmontx(s42,s28,s31)
+    __mulmontx(s43,s29,s30)
+    __submodx(s28,s40,s41)
+    __addmodx(s29,s42,s43)
+    __addmodx(s30,s22,s24)
+    __addmodx(s31,s23,s25)
+    __submodx(s28,s28,s30)
+    __submodx(s29,s29,s31)
+    __addmodx(s30,s12,s14)
+    __addmodx(s31,s13,s15)
+    __addmodx(s32,s18,s20)
+    __addmodx(s33,s19,s21)
+    __mulmontx(s40,s30,s32)
+    __mulmontx(s41,s31,s33)
+    __mulmontx(s42,s30,s33)
+    __mulmontx(s43,s31,s32)
+    __submodx(s30,s40,s41)
+    __addmodx(s31,s42,s43)
+    __addmodx(s32,s24,s26)
+    __addmodx(s33,s25,s27)
+    __submodx(s30,s30,s32)
+    __submodx(s31,s31,s33)
+    __addmodx(s32,s10,s14)
+    __addmodx(s33,s11,s15)
+    __addmodx(s34,s16,s20)
+    __addmodx(s35,s17,s21)
+    __mulmontx(s40,s32,s34)
+    __mulmontx(s41,s33,s35)
+    __mulmontx(s42,s32,s35)
+    __mulmontx(s43,s33,s34)
+    __submodx(s32,s40,s41)
+    __addmodx(s33,s42,s43)
+    __addmodx(s34,s22,s26)
+    __addmodx(s35,s23,s27)
+    __submodx(s34,s32,s34)
+    __submodx(s35,s33,s35)
+    __addmodx(s32,s22,s22)
+    __addmodx(s33,s23,s23)
+    __addmodx(s22,s32,s22)
+    __addmodx(s23,s33,s23)
+    __mulmontx(s40,s26,s38)
+    __mulmontx(s41,s27,s39)
+    __mulmontx(s42,s26,s39)
+    __mulmontx(s43,s27,s38)
+    __submodx(s26,s40,s41)
+    __addmodx(s27,s42,s43)
+    __addmodx(s36,s24,s26)
+    __addmodx(s37,s25,s27)
+    __submodx(s24,s24,s26)
+    __submodx(s25,s25,s27)
+    __mulmontx(s40,s34,s38)
+    __mulmontx(s41,s35,s39)
+    __mulmontx(s42,s34,s39)
+    __mulmontx(s43,s35,s38)
+    __submodx(s34,s40,s41)
+    __addmodx(s35,s42,s43)
+    __mulmontx(s40,s30,s34)
+    __mulmontx(s41,s31,s35)
+    __mulmontx(s42,s30,s35)
+    __mulmontx(s43,s31,s34)
+    __submodx(s32,s40,s41)
+    __addmodx(s33,s42,s43)
+    __mulmontx(s40,s28,s24)
+    __mulmontx(s41,s29,s25)
+    __mulmontx(s42,s28,s25)
+    __mulmontx(s43,s29,s24)
+    __submodx(s26,s40,s41)
+    __addmodx(s27,s42,s43)
+    __submodx(s32,s26,s32)
+    __submodx(s33,s27,s33)
+    __mulmontx(s40,s34,s22)
+    __mulmontx(s41,s35,s23)
+    __mulmontx(s42,s34,s23)
+    __mulmontx(s43,s35,s22)
+    __submodx(s34,s40,s41)
+    __addmodx(s35,s42,s43)
+    __mulmontx(s40,s24,s36)
+    __mulmontx(s41,s25,s37)
+    __mulmontx(s42,s24,s37)
+    __mulmontx(s43,s25,s36)
+    __submodx(s24,s40,s41)
+    __addmodx(s25,s42,s43)
+    __addmodx(s34,s24,s34)
+    __addmodx(s35,s25,s35)
+    __mulmontx(s40,s22,s28)
+    __mulmontx(s41,s23,s29)
+    __mulmontx(s42,s22,s29)
+    __mulmontx(s43,s23,s28)
+    __submodx(s22,s40,s41)
+    __addmodx(s23,s42,s43)
+    __mulmontx(s40,s36,s30)
+    __mulmontx(s41,s37,s31)
+    __mulmontx(s42,s36,s31)
+    __mulmontx(s43,s37,s30)
+    __submodx(s36,s40,s41)
+    __addmodx(s37,s42,s43)
+    __addmodx(s36,s36,s22)
+    __addmodx(s37,s37,s23)
     // copy the result to OUTPUT_X, OUTPUT_Y, OUTPUT_Z
-    __addmodx(s6,s17,s0)
-    __addmodx(s7,s18,s0)
-    __addmodx(s8,s19,s0)
+    __addmodx(s10,s32,s0)
+    __addmodx(s11,s33,s0)
+    __addmodx(s12,s34,s0)
+    __addmodx(s13,s35,s0)
+    __addmodx(s14,s36,s0)
+    __addmodx(s15,s37,s0)
     }
 
 #define macro CONVERT_OUTPUT_TO_NORM() = takes(0) returns(0) {
-__mulmontx(s6,s6,s1)
+__mulmontx(s40,s10,s2)
+    __mulmontx(s41,s11,s3)
+    __mulmontx(s42,s10,s3)
+    __mulmontx(s43,s11,s2)
+    __submodx(s10,s40,s41)
+    __addmodx(s11,s42,s43)
     
-    __mulmontx(s7,s7,s1)
+    __mulmontx(s40,s12,s2)
+    __mulmontx(s41,s13,s3)
+    __mulmontx(s42,s12,s3)
+    __mulmontx(s43,s13,s2)
+    __submodx(s12,s40,s41)
+    __addmodx(s13,s42,s43)
     
-    __mulmontx(s8,s8,s1)
+    __mulmontx(s40,s14,s2)
+    __mulmontx(s41,s15,s3)
+    __mulmontx(s42,s14,s3)
+    __mulmontx(s43,s15,s2)
+    __submodx(s14,s40,s41)
+    __addmodx(s15,s42,s43)
     
 }
 
@@ -180,16 +374,16 @@ __mulmontx(s6,s6,s1)
     mstore
 
     0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f624
-    0x60
+    0x90
     mstore
     0x1eabfffeb153ffffb9feffffffffaaab00000000000000000000000000000000
-    0x80
+    0xb0
     mstore
     
 
     0x00
     0x06
-    0x60
+    0x90
     setmodx
 
     // load the scalar
@@ -198,26 +392,39 @@ __mulmontx(s6,s6,s1)
     //stack: scalar
 
     // copy the point (affine)
-    0x60
+    0xc0
     0x20
-    0x90
+    0xc0
     calldatacopy
+
     //stack: scalar
 
-    0x90
-    dup1
-    tomontx
     0xc0
     dup1
     tomontx
+    0xf0
+    dup1
+    tomontx
+    0x120
+    dup1
+    tomontx
+    0x150
+    dup1
+    tomontx
     0xc
-    0x3d0
+    0x730
+    mstore
+    0xc
+    0x760
     mstore
     0x1
-    0x40
+    0x70
     mstore
     //VAL_12 < 12
-    0x3c0
+    0x720
+    dup1
+    tomontx
+    0x750
     dup1
     tomontx
     SetG1GenZTo1()
@@ -3052,11 +3259,7 @@ loop_body0: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_0 rjumpi
     double_step_0 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3088,11 +3291,7 @@ loop_body1: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_1 rjumpi
     double_step_1 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3124,11 +3323,7 @@ loop_body2: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_2 rjumpi
     double_step_2 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3160,11 +3355,7 @@ loop_body3: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_3 rjumpi
     double_step_3 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3196,11 +3387,7 @@ loop_body4: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_4 rjumpi
     double_step_4 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3232,11 +3419,7 @@ loop_body5: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_5 rjumpi
     double_step_5 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3268,11 +3451,7 @@ loop_body6: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_6 rjumpi
     double_step_6 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3304,11 +3483,7 @@ loop_body7: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_7 rjumpi
     double_step_7 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3340,11 +3515,7 @@ loop_body8: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_8 rjumpi
     double_step_8 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3376,11 +3547,7 @@ loop_body9: // this doesn't actually have to be a jumpdest in the generated byte
     // TODO: double_step_9 rjumpi
     double_step_9 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3412,11 +3579,7 @@ loop_body10: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_10 rjumpi
     double_step_10 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3448,11 +3611,7 @@ loop_body11: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_11 rjumpi
     double_step_11 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3484,11 +3643,7 @@ loop_body12: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_12 rjumpi
     double_step_12 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3520,11 +3675,7 @@ loop_body13: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_13 rjumpi
     double_step_13 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3556,11 +3707,7 @@ loop_body14: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_14 rjumpi
     double_step_14 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3592,11 +3739,7 @@ loop_body15: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_15 rjumpi
     double_step_15 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3628,11 +3771,7 @@ loop_body16: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_16 rjumpi
     double_step_16 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3664,11 +3803,7 @@ loop_body17: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_17 rjumpi
     double_step_17 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3700,11 +3835,7 @@ loop_body18: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_18 rjumpi
     double_step_18 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3736,11 +3867,7 @@ loop_body19: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_19 rjumpi
     double_step_19 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3772,11 +3899,7 @@ loop_body20: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_20 rjumpi
     double_step_20 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3808,11 +3931,7 @@ loop_body21: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_21 rjumpi
     double_step_21 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3844,11 +3963,7 @@ loop_body22: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_22 rjumpi
     double_step_22 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3880,11 +3995,7 @@ loop_body23: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_23 rjumpi
     double_step_23 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3916,11 +4027,7 @@ loop_body24: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_24 rjumpi
     double_step_24 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3952,11 +4059,7 @@ loop_body25: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_25 rjumpi
     double_step_25 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -3988,11 +4091,7 @@ loop_body26: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_26 rjumpi
     double_step_26 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4024,11 +4123,7 @@ loop_body27: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_27 rjumpi
     double_step_27 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4060,11 +4155,7 @@ loop_body28: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_28 rjumpi
     double_step_28 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4096,11 +4187,7 @@ loop_body29: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_29 rjumpi
     double_step_29 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4132,11 +4219,7 @@ loop_body30: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_30 rjumpi
     double_step_30 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4168,11 +4251,7 @@ loop_body31: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_31 rjumpi
     double_step_31 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4204,11 +4283,7 @@ loop_body32: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_32 rjumpi
     double_step_32 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4240,11 +4315,7 @@ loop_body33: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_33 rjumpi
     double_step_33 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4276,11 +4347,7 @@ loop_body34: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_34 rjumpi
     double_step_34 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4312,11 +4379,7 @@ loop_body35: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_35 rjumpi
     double_step_35 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4348,11 +4411,7 @@ loop_body36: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_36 rjumpi
     double_step_36 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4384,11 +4443,7 @@ loop_body37: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_37 rjumpi
     double_step_37 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4420,11 +4475,7 @@ loop_body38: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_38 rjumpi
     double_step_38 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4456,11 +4507,7 @@ loop_body39: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_39 rjumpi
     double_step_39 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4492,11 +4539,7 @@ loop_body40: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_40 rjumpi
     double_step_40 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4528,11 +4571,7 @@ loop_body41: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_41 rjumpi
     double_step_41 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4564,11 +4603,7 @@ loop_body42: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_42 rjumpi
     double_step_42 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4600,11 +4635,7 @@ loop_body43: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_43 rjumpi
     double_step_43 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4636,11 +4667,7 @@ loop_body44: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_44 rjumpi
     double_step_44 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4672,11 +4699,7 @@ loop_body45: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_45 rjumpi
     double_step_45 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4708,11 +4731,7 @@ loop_body46: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_46 rjumpi
     double_step_46 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4744,11 +4763,7 @@ loop_body47: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_47 rjumpi
     double_step_47 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4780,11 +4795,7 @@ loop_body48: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_48 rjumpi
     double_step_48 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4816,11 +4827,7 @@ loop_body49: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_49 rjumpi
     double_step_49 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4852,11 +4859,7 @@ loop_body50: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_50 rjumpi
     double_step_50 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4888,11 +4891,7 @@ loop_body51: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_51 rjumpi
     double_step_51 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4924,11 +4923,7 @@ loop_body52: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_52 rjumpi
     double_step_52 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4960,11 +4955,7 @@ loop_body53: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_53 rjumpi
     double_step_53 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -4996,11 +4987,7 @@ loop_body54: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_54 rjumpi
     double_step_54 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5032,11 +5019,7 @@ loop_body55: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_55 rjumpi
     double_step_55 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5068,11 +5051,7 @@ loop_body56: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_56 rjumpi
     double_step_56 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5104,11 +5083,7 @@ loop_body57: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_57 rjumpi
     double_step_57 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5140,11 +5115,7 @@ loop_body58: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_58 rjumpi
     double_step_58 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5176,11 +5147,7 @@ loop_body59: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_59 rjumpi
     double_step_59 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5212,11 +5179,7 @@ loop_body60: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_60 rjumpi
     double_step_60 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5248,11 +5211,7 @@ loop_body61: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_61 rjumpi
     double_step_61 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5284,11 +5243,7 @@ loop_body62: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_62 rjumpi
     double_step_62 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5320,11 +5275,7 @@ loop_body63: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_63 rjumpi
     double_step_63 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5356,11 +5307,7 @@ loop_body64: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_64 rjumpi
     double_step_64 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5392,11 +5339,7 @@ loop_body65: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_65 rjumpi
     double_step_65 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5428,11 +5371,7 @@ loop_body66: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_66 rjumpi
     double_step_66 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5464,11 +5403,7 @@ loop_body67: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_67 rjumpi
     double_step_67 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5500,11 +5435,7 @@ loop_body68: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_68 rjumpi
     double_step_68 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5536,11 +5467,7 @@ loop_body69: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_69 rjumpi
     double_step_69 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5572,11 +5499,7 @@ loop_body70: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_70 rjumpi
     double_step_70 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5608,11 +5531,7 @@ loop_body71: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_71 rjumpi
     double_step_71 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5644,11 +5563,7 @@ loop_body72: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_72 rjumpi
     double_step_72 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5680,11 +5595,7 @@ loop_body73: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_73 rjumpi
     double_step_73 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5716,11 +5627,7 @@ loop_body74: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_74 rjumpi
     double_step_74 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5752,11 +5659,7 @@ loop_body75: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_75 rjumpi
     double_step_75 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5788,11 +5691,7 @@ loop_body76: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_76 rjumpi
     double_step_76 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5824,11 +5723,7 @@ loop_body77: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_77 rjumpi
     double_step_77 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5860,11 +5755,7 @@ loop_body78: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_78 rjumpi
     double_step_78 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5896,11 +5787,7 @@ loop_body79: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_79 rjumpi
     double_step_79 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5932,11 +5819,7 @@ loop_body80: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_80 rjumpi
     double_step_80 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -5968,11 +5851,7 @@ loop_body81: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_81 rjumpi
     double_step_81 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6004,11 +5883,7 @@ loop_body82: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_82 rjumpi
     double_step_82 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6040,11 +5915,7 @@ loop_body83: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_83 rjumpi
     double_step_83 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6076,11 +5947,7 @@ loop_body84: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_84 rjumpi
     double_step_84 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6112,11 +5979,7 @@ loop_body85: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_85 rjumpi
     double_step_85 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6148,11 +6011,7 @@ loop_body86: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_86 rjumpi
     double_step_86 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6184,11 +6043,7 @@ loop_body87: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_87 rjumpi
     double_step_87 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6220,11 +6075,7 @@ loop_body88: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_88 rjumpi
     double_step_88 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6256,11 +6107,7 @@ loop_body89: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_89 rjumpi
     double_step_89 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6292,11 +6139,7 @@ loop_body90: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_90 rjumpi
     double_step_90 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6328,11 +6171,7 @@ loop_body91: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_91 rjumpi
     double_step_91 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6364,11 +6203,7 @@ loop_body92: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_92 rjumpi
     double_step_92 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6400,11 +6235,7 @@ loop_body93: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_93 rjumpi
     double_step_93 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6436,11 +6267,7 @@ loop_body94: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_94 rjumpi
     double_step_94 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6472,11 +6299,7 @@ loop_body95: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_95 rjumpi
     double_step_95 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6508,11 +6331,7 @@ loop_body96: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_96 rjumpi
     double_step_96 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6544,11 +6363,7 @@ loop_body97: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_97 rjumpi
     double_step_97 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6580,11 +6395,7 @@ loop_body98: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_98 rjumpi
     double_step_98 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6616,11 +6427,7 @@ loop_body99: // this doesn't actually have to be a jumpdest in the generated byt
     // TODO: double_step_99 rjumpi
     double_step_99 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6652,11 +6459,7 @@ loop_body100: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_100 rjumpi
     double_step_100 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6688,11 +6491,7 @@ loop_body101: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_101 rjumpi
     double_step_101 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6724,11 +6523,7 @@ loop_body102: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_102 rjumpi
     double_step_102 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6760,11 +6555,7 @@ loop_body103: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_103 rjumpi
     double_step_103 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6796,11 +6587,7 @@ loop_body104: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_104 rjumpi
     double_step_104 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6832,11 +6619,7 @@ loop_body105: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_105 rjumpi
     double_step_105 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6868,11 +6651,7 @@ loop_body106: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_106 rjumpi
     double_step_106 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6904,11 +6683,7 @@ loop_body107: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_107 rjumpi
     double_step_107 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6940,11 +6715,7 @@ loop_body108: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_108 rjumpi
     double_step_108 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -6976,11 +6747,7 @@ loop_body109: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_109 rjumpi
     double_step_109 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7012,11 +6779,7 @@ loop_body110: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_110 rjumpi
     double_step_110 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7048,11 +6811,7 @@ loop_body111: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_111 rjumpi
     double_step_111 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7084,11 +6843,7 @@ loop_body112: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_112 rjumpi
     double_step_112 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7120,11 +6875,7 @@ loop_body113: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_113 rjumpi
     double_step_113 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7156,11 +6907,7 @@ loop_body114: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_114 rjumpi
     double_step_114 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7192,11 +6939,7 @@ loop_body115: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_115 rjumpi
     double_step_115 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7228,11 +6971,7 @@ loop_body116: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_116 rjumpi
     double_step_116 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7264,11 +7003,7 @@ loop_body117: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_117 rjumpi
     double_step_117 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7300,11 +7035,7 @@ loop_body118: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_118 rjumpi
     double_step_118 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7336,11 +7067,7 @@ loop_body119: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_119 rjumpi
     double_step_119 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7372,11 +7099,7 @@ loop_body120: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_120 rjumpi
     double_step_120 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7408,11 +7131,7 @@ loop_body121: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_121 rjumpi
     double_step_121 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7444,11 +7163,7 @@ loop_body122: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_122 rjumpi
     double_step_122 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7480,11 +7195,7 @@ loop_body123: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_123 rjumpi
     double_step_123 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7516,11 +7227,7 @@ loop_body124: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_124 rjumpi
     double_step_124 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7552,11 +7259,7 @@ loop_body125: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_125 rjumpi
     double_step_125 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7588,11 +7291,7 @@ loop_body126: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_126 rjumpi
     double_step_126 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7624,11 +7323,7 @@ loop_body127: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_127 rjumpi
     double_step_127 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7660,11 +7355,7 @@ loop_body128: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_128 rjumpi
     double_step_128 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7696,11 +7387,7 @@ loop_body129: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_129 rjumpi
     double_step_129 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7732,11 +7419,7 @@ loop_body130: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_130 rjumpi
     double_step_130 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7768,11 +7451,7 @@ loop_body131: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_131 rjumpi
     double_step_131 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7804,11 +7483,7 @@ loop_body132: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_132 rjumpi
     double_step_132 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7840,11 +7515,7 @@ loop_body133: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_133 rjumpi
     double_step_133 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7876,11 +7547,7 @@ loop_body134: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_134 rjumpi
     double_step_134 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7912,11 +7579,7 @@ loop_body135: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_135 rjumpi
     double_step_135 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7948,11 +7611,7 @@ loop_body136: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_136 rjumpi
     double_step_136 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -7984,11 +7643,7 @@ loop_body137: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_137 rjumpi
     double_step_137 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8020,11 +7675,7 @@ loop_body138: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_138 rjumpi
     double_step_138 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8056,11 +7707,7 @@ loop_body139: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_139 rjumpi
     double_step_139 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8092,11 +7739,7 @@ loop_body140: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_140 rjumpi
     double_step_140 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8128,11 +7771,7 @@ loop_body141: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_141 rjumpi
     double_step_141 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8164,11 +7803,7 @@ loop_body142: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_142 rjumpi
     double_step_142 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8200,11 +7835,7 @@ loop_body143: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_143 rjumpi
     double_step_143 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8236,11 +7867,7 @@ loop_body144: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_144 rjumpi
     double_step_144 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8272,11 +7899,7 @@ loop_body145: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_145 rjumpi
     double_step_145 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8308,11 +7931,7 @@ loop_body146: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_146 rjumpi
     double_step_146 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8344,11 +7963,7 @@ loop_body147: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_147 rjumpi
     double_step_147 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8380,11 +7995,7 @@ loop_body148: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_148 rjumpi
     double_step_148 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8416,11 +8027,7 @@ loop_body149: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_149 rjumpi
     double_step_149 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8452,11 +8059,7 @@ loop_body150: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_150 rjumpi
     double_step_150 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8488,11 +8091,7 @@ loop_body151: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_151 rjumpi
     double_step_151 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8524,11 +8123,7 @@ loop_body152: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_152 rjumpi
     double_step_152 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8560,11 +8155,7 @@ loop_body153: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_153 rjumpi
     double_step_153 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8596,11 +8187,7 @@ loop_body154: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_154 rjumpi
     double_step_154 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8632,11 +8219,7 @@ loop_body155: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_155 rjumpi
     double_step_155 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8668,11 +8251,7 @@ loop_body156: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_156 rjumpi
     double_step_156 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8704,11 +8283,7 @@ loop_body157: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_157 rjumpi
     double_step_157 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8740,11 +8315,7 @@ loop_body158: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_158 rjumpi
     double_step_158 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8776,11 +8347,7 @@ loop_body159: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_159 rjumpi
     double_step_159 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8812,11 +8379,7 @@ loop_body160: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_160 rjumpi
     double_step_160 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8848,11 +8411,7 @@ loop_body161: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_161 rjumpi
     double_step_161 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8884,11 +8443,7 @@ loop_body162: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_162 rjumpi
     double_step_162 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8920,11 +8475,7 @@ loop_body163: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_163 rjumpi
     double_step_163 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8956,11 +8507,7 @@ loop_body164: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_164 rjumpi
     double_step_164 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -8992,11 +8539,7 @@ loop_body165: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_165 rjumpi
     double_step_165 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9028,11 +8571,7 @@ loop_body166: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_166 rjumpi
     double_step_166 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9064,11 +8603,7 @@ loop_body167: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_167 rjumpi
     double_step_167 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9100,11 +8635,7 @@ loop_body168: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_168 rjumpi
     double_step_168 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9136,11 +8667,7 @@ loop_body169: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_169 rjumpi
     double_step_169 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9172,11 +8699,7 @@ loop_body170: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_170 rjumpi
     double_step_170 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9208,11 +8731,7 @@ loop_body171: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_171 rjumpi
     double_step_171 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9244,11 +8763,7 @@ loop_body172: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_172 rjumpi
     double_step_172 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9280,11 +8795,7 @@ loop_body173: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_173 rjumpi
     double_step_173 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9316,11 +8827,7 @@ loop_body174: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_174 rjumpi
     double_step_174 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9352,11 +8859,7 @@ loop_body175: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_175 rjumpi
     double_step_175 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9388,11 +8891,7 @@ loop_body176: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_176 rjumpi
     double_step_176 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9424,11 +8923,7 @@ loop_body177: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_177 rjumpi
     double_step_177 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9460,11 +8955,7 @@ loop_body178: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_178 rjumpi
     double_step_178 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9496,11 +8987,7 @@ loop_body179: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_179 rjumpi
     double_step_179 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9532,11 +9019,7 @@ loop_body180: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_180 rjumpi
     double_step_180 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9568,11 +9051,7 @@ loop_body181: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_181 rjumpi
     double_step_181 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9604,11 +9083,7 @@ loop_body182: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_182 rjumpi
     double_step_182 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9640,11 +9115,7 @@ loop_body183: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_183 rjumpi
     double_step_183 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9676,11 +9147,7 @@ loop_body184: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_184 rjumpi
     double_step_184 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9712,11 +9179,7 @@ loop_body185: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_185 rjumpi
     double_step_185 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9748,11 +9211,7 @@ loop_body186: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_186 rjumpi
     double_step_186 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9784,11 +9243,7 @@ loop_body187: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_187 rjumpi
     double_step_187 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9820,11 +9275,7 @@ loop_body188: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_188 rjumpi
     double_step_188 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9856,11 +9307,7 @@ loop_body189: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_189 rjumpi
     double_step_189 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9892,11 +9339,7 @@ loop_body190: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_190 rjumpi
     double_step_190 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9928,11 +9371,7 @@ loop_body191: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_191 rjumpi
     double_step_191 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -9964,11 +9403,7 @@ loop_body192: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_192 rjumpi
     double_step_192 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10000,11 +9435,7 @@ loop_body193: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_193 rjumpi
     double_step_193 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10036,11 +9467,7 @@ loop_body194: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_194 rjumpi
     double_step_194 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10072,11 +9499,7 @@ loop_body195: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_195 rjumpi
     double_step_195 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10108,11 +9531,7 @@ loop_body196: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_196 rjumpi
     double_step_196 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10144,11 +9563,7 @@ loop_body197: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_197 rjumpi
     double_step_197 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10180,11 +9595,7 @@ loop_body198: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_198 rjumpi
     double_step_198 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10216,11 +9627,7 @@ loop_body199: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_199 rjumpi
     double_step_199 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10252,11 +9659,7 @@ loop_body200: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_200 rjumpi
     double_step_200 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10288,11 +9691,7 @@ loop_body201: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_201 rjumpi
     double_step_201 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10324,11 +9723,7 @@ loop_body202: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_202 rjumpi
     double_step_202 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10360,11 +9755,7 @@ loop_body203: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_203 rjumpi
     double_step_203 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10396,11 +9787,7 @@ loop_body204: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_204 rjumpi
     double_step_204 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10432,11 +9819,7 @@ loop_body205: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_205 rjumpi
     double_step_205 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10468,11 +9851,7 @@ loop_body206: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_206 rjumpi
     double_step_206 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10504,11 +9883,7 @@ loop_body207: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_207 rjumpi
     double_step_207 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10540,11 +9915,7 @@ loop_body208: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_208 rjumpi
     double_step_208 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10576,11 +9947,7 @@ loop_body209: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_209 rjumpi
     double_step_209 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10612,11 +9979,7 @@ loop_body210: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_210 rjumpi
     double_step_210 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10648,11 +10011,7 @@ loop_body211: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_211 rjumpi
     double_step_211 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10684,11 +10043,7 @@ loop_body212: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_212 rjumpi
     double_step_212 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10720,11 +10075,7 @@ loop_body213: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_213 rjumpi
     double_step_213 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10756,11 +10107,7 @@ loop_body214: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_214 rjumpi
     double_step_214 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10792,11 +10139,7 @@ loop_body215: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_215 rjumpi
     double_step_215 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10828,11 +10171,7 @@ loop_body216: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_216 rjumpi
     double_step_216 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10864,11 +10203,7 @@ loop_body217: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_217 rjumpi
     double_step_217 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10900,11 +10235,7 @@ loop_body218: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_218 rjumpi
     double_step_218 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10936,11 +10267,7 @@ loop_body219: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_219 rjumpi
     double_step_219 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -10972,11 +10299,7 @@ loop_body220: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_220 rjumpi
     double_step_220 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11008,11 +10331,7 @@ loop_body221: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_221 rjumpi
     double_step_221 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11044,11 +10363,7 @@ loop_body222: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_222 rjumpi
     double_step_222 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11080,11 +10395,7 @@ loop_body223: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_223 rjumpi
     double_step_223 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11116,11 +10427,7 @@ loop_body224: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_224 rjumpi
     double_step_224 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11152,11 +10459,7 @@ loop_body225: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_225 rjumpi
     double_step_225 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11188,11 +10491,7 @@ loop_body226: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_226 rjumpi
     double_step_226 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11224,11 +10523,7 @@ loop_body227: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_227 rjumpi
     double_step_227 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11260,11 +10555,7 @@ loop_body228: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_228 rjumpi
     double_step_228 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11296,11 +10587,7 @@ loop_body229: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_229 rjumpi
     double_step_229 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11332,11 +10619,7 @@ loop_body230: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_230 rjumpi
     double_step_230 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11368,11 +10651,7 @@ loop_body231: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_231 rjumpi
     double_step_231 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11404,11 +10683,7 @@ loop_body232: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_232 rjumpi
     double_step_232 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11440,11 +10715,7 @@ loop_body233: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_233 rjumpi
     double_step_233 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11476,11 +10747,7 @@ loop_body234: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_234 rjumpi
     double_step_234 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11512,11 +10779,7 @@ loop_body235: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_235 rjumpi
     double_step_235 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11548,11 +10811,7 @@ loop_body236: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_236 rjumpi
     double_step_236 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11584,11 +10843,7 @@ loop_body237: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_237 rjumpi
     double_step_237 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11620,11 +10875,7 @@ loop_body238: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_238 rjumpi
     double_step_238 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11656,11 +10907,7 @@ loop_body239: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_239 rjumpi
     double_step_239 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11692,11 +10939,7 @@ loop_body240: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_240 rjumpi
     double_step_240 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11728,11 +10971,7 @@ loop_body241: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_241 rjumpi
     double_step_241 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11764,11 +11003,7 @@ loop_body242: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_242 rjumpi
     double_step_242 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11800,11 +11035,7 @@ loop_body243: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_243 rjumpi
     double_step_243 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11836,11 +11067,7 @@ loop_body244: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_244 rjumpi
     double_step_244 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11872,11 +11099,7 @@ loop_body245: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_245 rjumpi
     double_step_245 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11908,11 +11131,7 @@ loop_body246: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_246 rjumpi
     double_step_246 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11944,11 +11163,7 @@ loop_body247: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_247 rjumpi
     double_step_247 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -11980,11 +11195,7 @@ loop_body248: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_248 rjumpi
     double_step_248 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12016,11 +11227,7 @@ loop_body249: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_249 rjumpi
     double_step_249 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12052,11 +11259,7 @@ loop_body250: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_250 rjumpi
     double_step_250 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12088,11 +11291,7 @@ loop_body251: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_251 rjumpi
     double_step_251 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12124,11 +11323,7 @@ loop_body252: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_252 rjumpi
     double_step_252 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12160,11 +11355,7 @@ loop_body253: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_253 rjumpi
     double_step_253 jumpi
 
-    
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12196,9 +11387,7 @@ loop_body254: // this doesn't actually have to be a jumpdest in the generated by
     // TODO: double_step_254 rjumpi
     double_step_254 jumpi
 
-    
-        DoubleAndAdd()
-    
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -12229,7 +11418,7 @@ end:
     // TODO
     // CONVERT_TO_AFFINE()
 
-    0x90
     0x120
+    0x1e0
     return
 }
