@@ -283,6 +283,35 @@ class TemplateState:
         else:
             return self.__emit_check_fp2_nonzero(item)
 
+    def emit_set_val_12_fq2(self, output):
+        output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
+        res = []
+
+        res.append('0xc')
+        res.append(hex(output_offset + 16))
+        res.append('mstore')
+        res.append('0xc')
+        res.append(hex(output_offset + 48 + 16))
+        res.append('mstore')
+
+        return res
+
+    def emit_set_val_12_fq(self, output):
+        output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
+        res = []
+
+        res.append('0xc')
+        res.append(hex(output_offset + 16))
+        res.append('mstore')
+
+        return res
+
+    def emit_set_val_12(self, output):
+        if self.item_size == 1:
+            return self.emit_set_val_12_fq(output)
+        else:
+            return self.emit_set_val_12_fq2(output)
+
     # TODO change name to store_constant_at_slot_offset or something similar
     def emit_store_constant_32byte_aligned(self, output, val):
         output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
@@ -389,6 +418,10 @@ def ref_item(new_name, old_name):
     template_state.ref_item(new_name, old_name)
     return ''
 
+def emit_set_val_12(output):
+    global template_state
+    return template_state.emit_text(template_state.emit_set_val_12(output))
+
 func_dict = {
     'alloc_range': alloc_range,
     'alloc_slot': alloc_slot,
@@ -406,6 +439,7 @@ func_dict = {
     'emit_f_set_one': emit_f_set_one,
     'emit_f_set_zero': emit_f_set_zero,
     'emit_f_copy': emit_f_copy,
+    'emit_set_val_12': emit_set_val_12,
     'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
     'emit_check_val_nonzero': emit_check_val_nonzero,
 }

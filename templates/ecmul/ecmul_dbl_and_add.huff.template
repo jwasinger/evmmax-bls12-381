@@ -219,8 +219,7 @@ end1:
     {{ emit_item_to_mont('G1_GEN_X') -}}
     {{ emit_item_to_mont('G1_GEN_Y') -}}
 
-    {{ emit_store_constant_32byte_aligned('VAL_12', 12) -}}
-    {{ emit_store_constant_32byte_aligned('VAL_12_1', 12) -}} // TODO remove this for G1
+    {{ emit_set_val_12('VAL_12') -}}
     {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
 
     //VAL_12 < 12
