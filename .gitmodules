@@ -1,21 +1,9 @@
 [submodule "huff-rs"]
 	path = huff-rs
 	url = https://github.com/jwasinger/huff-rs
-[submodule "bls12_381"]
-	path = bls12_381
-	url = https://github.com/jwasinger/bls12_381
 [submodule "go-ethereum-eip5843"]
 	path = go-ethereum-eip5843
 	url = https://github.com/jwasinger/go-ethereum
-[submodule "go-ethereum-asm384"]
-	path = go-ethereum-asm384
-	url = https://github.com/jwasinger/go-ethereum
-[submodule "bls12_381-g1mul-constant-time"]
-	path = bls12_381-g1mul-constant-time
-	url = https://github.com/jwasinger/bls12_381
 [submodule "templates/inv_mod/addchain"]
 	path = templates/inv_mod/addchain
-	url = https://github.com/jwasinger/addchain
-[submodule "templates/invmod/addchain"]
-	path = templates/invmod/addchain
 	url = https://github.com/jwasinger/addchain
