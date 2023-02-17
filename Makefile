@@ -18,6 +18,6 @@ g2:
 	python3 gen_huff.py templates/ecmul/ecmul_dbl_and_add.huff.template build/src/ecmul/g2mul_dbl_and_add.huff G2
 	bash -c "./huff-rs/target/release/huffc --artifacts --bytecode build/src/ecmul/g2mul_dbl_and_add.huff > build/artifacts/ecmul/g2mul_dbl_and_add.hex"
 invmod:
-	(cd templates/invmod && ./make.sh)
+	(cd templates/invmod/addchain/cmd/addchain && go build && cd ../../../ && ./make.sh)
 	python3 gen_huff.py templates/invmod/invmod.huff.template build/src/invmod/invmod.huff G1
 	bash -c "./huff-rs/target/release/huffc --artifacts --bytecode build/src/invmod/invmod.huff > build/artifacts/invmod/invmod.hex"
