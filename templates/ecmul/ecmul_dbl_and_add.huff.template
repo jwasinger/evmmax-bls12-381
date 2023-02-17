@@ -117,41 +117,8 @@ end1:
 {{ end_block() -}}
 }
 
-// OUTPUT_SLOT <- OUTPUT_SLOT * 2
-#define macro DoubleStepDebug() = takes(0) returns(0) {
-{{ start_block() -}}
-    // copy OUTPUT_(x/y/z) to TEMP_POINT_(x/y/z)
-    {{ emit_f_copy('TEMP_POINT_X', 'OUTPUT_X') -}}
-    {{ emit_f_copy('TEMP_POINT_Y', 'OUTPUT_Y') -}}
-    {{ emit_f_copy('TEMP_POINT_Z', 'OUTPUT_Z') -}}
-
-    {{ emit_f_mul('TEMP0', 'TEMP_POINT_Y', 'TEMP_POINT_Y') -}}
-    {{ emit_f_add('OUTPUT_Z', 'TEMP0', 'TEMP0') -}}
-    {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
-    {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
-    {{ emit_f_mul('TEMP1', 'TEMP_POINT_Y', 'TEMP_POINT_Z') -}}
-    {{ emit_f_mul('TEMP2', 'TEMP_POINT_Z', 'TEMP_POINT_Z') -}}
-    {{ emit_f_mul('TEMP2', 'TEMP2', 'VAL_12') -}}
-    {{ emit_f_mul('OUTPUT_X', 'TEMP2', 'OUTPUT_Z') -}}
-    {{ emit_f_add('OUTPUT_Y', 'TEMP0', 'TEMP2') -}}
-    {{ emit_f_mul('OUTPUT_Z', 'TEMP1', 'OUTPUT_Z') -}}
-    {{ emit_f_add('TEMP1', 'TEMP2', 'TEMP2') -}}
-    {{ emit_f_add('TEMP2', 'TEMP1', 'TEMP2') -}}
-    {{ emit_f_sub('TEMP0', 'TEMP0', 'TEMP2') -}}
-    {{ emit_f_mul('OUTPUT_Y', 'TEMP0', 'OUTPUT_Y') -}}
-    {{ emit_f_add('OUTPUT_Y', 'OUTPUT_X', 'OUTPUT_Y') -}}
-    {{ emit_f_mul('TEMP1', 'TEMP_POINT_X', 'TEMP_POINT_Y') -}}
-    {{ emit_f_mul('OUTPUT_X', 'TEMP0', 'TEMP1') -}}
-    {{ emit_f_add('OUTPUT_X', 'OUTPUT_X', 'OUTPUT_X') -}}
-{{ end_block() -}}
-}
-
 #define fn Double() = takes(0) returns(0) {
     DoubleStep()
-}
-
-#define fn DoubleDebug() = takes(0) returns(0) {
-    DoubleStepDebug()
 }
 
 #define fn DoubleAndAdd() = takes(0) returns(0) {
@@ -297,13 +264,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
     // TODO: double_step_{{i}} rjumpi
     double_step_{{i}} jumpi
 
-    {% if i == 254 %}
-        DoubleAndAdd()
-    {% else %}
-        // TODO call add with rjump
-        // cost: push(ret_addr) + rjump + jumpi = 20
-        DoubleAndAdd()
-    {% endif %}
+    DoubleAndAdd()
 
     // shift-out the top bit of the scalar
     0x01
@@ -319,11 +280,7 @@ loop_body{{i}}: // this doesn't actually have to be a jumpdest in the generated 
 double_step_{{i}}:
     // TODO call add with rjump
     // cost: push(ret_addr) + rjump + jumpi = 20
-    {% if i == 254 %}
-        DoubleDebug()
-    {% else %}
-        Double()
-    {% endif %}
+    Double()
 
     // shift-out the top bit of the scalar
     0x01
