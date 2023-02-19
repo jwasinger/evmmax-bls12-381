@@ -10,9 +10,11 @@ class TemplateState:
         else:
             self.item_size = 1
 
+        self.alloc_inputs_done = False
+        self.free_input_idx = 0
+        self.num_inputs = 0
         self.free_slot = 0
         self.evmmax_slot_size = 48 # hardcode to bls for now
-        self.evmmax_mem_start = 0
         self.allocs = {}
         self.indent_lvl = 0
         self.indent_size = 4
@@ -25,12 +27,29 @@ class TemplateState:
         self.allocs[symbol] = self.free_slot
         self.free_slot += count * self.item_size
 
-    def alloc_slot(self, symbol):
+    def alloc_input(self, symbol):
+        self.inputs[symbol] = self.free_input_free_input_idx
+        self.free_input_idx += self.item_size
+
+    def emit_evmmax_store_inputs(self):
+        res = [
+           '0x0',
+           '0x0', 
+           '0x0',
+           hex(self.free_input_idx),
+           'storex'
+        ]
+        return res
+
+    def alloc_val(self, symbol):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
 
         self.allocs[symbol] = self.free_slot
         self.free_slot += 1
+
+    def emit_slots_used(self):
+        return [hex(self.free_slot)]
 
     def ref_item(self, new_name, existing_name):
         old_slot = self.allocs[existing_name]
@@ -233,7 +252,7 @@ class TemplateState:
     def emit_mem_offset(self, slot, offset=0):
         return hex(self.evmmax_mem_start + self.allocs[slot] * self.evmmax_slot_size  + offset)
 
-    def emit_item_to_mont(self, item):
+    def emit_load_input_vals(self):
         res = []
 
         for i in range(0, self.item_size):
@@ -344,9 +363,13 @@ def start_block():
     template_state.start_block()
     return ''
 
-def emit_item_to_mont(item):
+def emit_load_items(item):
     global template_state
-    return template_state.emit_text(template_state.emit_item_to_mont(item))
+    return template_state.emit_text(template_state.emit_load_items(item))
+
+def emit_slots_used():
+    global template_state
+    return template_state.emit_text(template_state.emit_slots_used())
 
 def end_block():
     global template_state
@@ -397,16 +420,19 @@ def emit_f_set_zero(out) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_set_zero(out))
 
+def alloc_input(symbol, count):
+    pass
+
 def alloc_range(symbol, count):
     global template_state
 
     template_state.alloc_range(symbol, count)
     return ''
 
-def alloc_slot(symbol):
+def alloc_val(symbol):
     global template_state
 
-    template_state.alloc_slot(symbol)
+    template_state.alloc_val(symbol)
     return ''
 
 def emit_check_val_nonzero(val):
@@ -424,11 +450,11 @@ def emit_set_val_12(output):
 
 func_dict = {
     'alloc_range': alloc_range,
-    'alloc_slot': alloc_slot,
+    'alloc_val': alloc_val,
     'start_block': start_block,
     'end_block': end_block,
     'ref_item': ref_item,
-    'emit_item_to_mont': emit_item_to_mont,
+    'emit_load_items': emit_load_items,
     'emit_f_copy': emit_f_copy,
     'emit_mulmontx': emit_mulmontx,
     'emit_f_mul': emit_f_mul,
@@ -442,6 +468,7 @@ func_dict = {
     'emit_set_val_12': emit_set_val_12,
     'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
     'emit_check_val_nonzero': emit_check_val_nonzero,
+    'emit_slots_used': emit_slots_used,
 }
 
 def main():

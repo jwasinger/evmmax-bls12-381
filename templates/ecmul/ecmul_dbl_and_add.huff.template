@@ -1,40 +1,39 @@
-{{ alloc_range('ZERO_VAL', 1) -}}
-{{ alloc_slot('ONE_VAL') -}}
-{{ alloc_slot('MODULUS') -}}
+{{ alloc_input_f('ZERO_VAL', 1) -}}
+{{ alloc_input_val('ONE_VAL') -}}
+{{ alloc_input_val('MODULUS') -}}
 
-{{ alloc_range('G1_GEN_X', 1) -}}
-{{ alloc_range('G1_GEN_Y', 1) -}}
-{{ alloc_range('G1_GEN_Z', 1) -}}
+{{ alloc_input_val('G1_GEN_X') -}}
+{{ alloc_input_val('G1_GEN_Y') -}}
+{{ alloc_input_val('G1_GEN_Z') -}}
 
-{{ alloc_range('OUTPUT_X', 1) -}}
-{{ alloc_range('OUTPUT_Y', 1) -}}
-{{ alloc_range('OUTPUT_Z', 1) -}}
+{{ alloc_f('OUTPUT_X') -}}
+{{ alloc_f('OUTPUT_Y') -}}
+{{ alloc_f('OUTPUT_Z') -}}
 
-// TODO remove unused range
-{{ alloc_range('TEMP_POINT_X', 1) -}}
-{{ alloc_range('TEMP_POINT_Y', 1) -}}
-{{ alloc_range('TEMP_POINT_Z', 1) -}}
+{{ alloc_f('TEMP_POINT_X', 1) -}}
+{{ alloc_f('TEMP_POINT_Y', 1) -}}
+{{ alloc_f('TEMP_POINT_Z', 1) -}}
 
-{{ alloc_range('TEMP0', 1) -}}
-{{ alloc_range('TEMP1', 1) -}}
-{{ alloc_range('TEMP2', 1) -}}
-{{ alloc_range('TEMP3', 1) -}}
-{{ alloc_range('TEMP4', 1) -}}
-{{ alloc_range('TEMP5', 1) -}}
-{{ alloc_range('TEMP6', 1) -}}
-{{ alloc_range('TEMP7', 1) -}}
+{{ alloc_f('TEMP0') -}}
+{{ alloc_f('TEMP1') -}}
+{{ alloc_f('TEMP2') -}}
+{{ alloc_f('TEMP3') -}}
+{{ alloc_f('TEMP4') -}}
+{{ alloc_f('TEMP5') -}}
+{{ alloc_f('TEMP6') -}}
+{{ alloc_f('TEMP7') -}}
 
 {{ ref_item('OUTPUT_TEMP_X', 'TEMP5') -}}
 {{ ref_item('OUTPUT_TEMP_Y', 'TEMP6') -}}
 {{ ref_item('OUTPUT_TEMP_Z', 'TEMP7') -}}
 
-{{ alloc_slot('VAL_12') -}}
-{{ alloc_slot('VAL_12_1') -}}
+{{ alloc_val('VAL_12') -}}
+{{ alloc_val('VAL_12_1') -}}
 
-{{ alloc_slot('FP2_TEMP0') -}}
-{{ alloc_slot('FP2_TEMP1') -}}
-{{ alloc_slot('FP2_TEMP2') -}}
-{{ alloc_slot('FP2_TEMP3') -}}
+{{ alloc_val('FP2_TEMP0') -}}
+{{ alloc_val('FP2_TEMP1') -}}
+{{ alloc_val('FP2_TEMP2') -}}
+{{ alloc_val('FP2_TEMP3') -}}
 
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
     {{ emit_f_set_one('G1_GEN_Z') -}}
