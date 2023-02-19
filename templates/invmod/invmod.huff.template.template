@@ -4,6 +4,8 @@
 {{"{{"}} alloc_input("ONE_VAL") {{"-}}"}}
 {{"{{"}} alloc_val("ZERO_VAL") {{"-}}"}}
 
+{{"{{"}} alloc_mem("x", 48) {{"-}}"}}
+
 // Allocate Temporaries.
 {{- range .Program.Temporaries }}
 {{"{{"}} alloc_val("{{ . }}") {{"}}"}}
@@ -44,10 +46,10 @@
 
     {{"{{"}} emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) {{"}}"}}
 
+    {{"{{"}} emit_slots_used() {{"}}"}}
+    0x30
     0x00
     {{"{{"}} emit_mem_offset('MODULUS') {{"-}}"}}
-    0x30
-    {{"{{"}} emit_slots_used() {{"-}}"}}
     setupx
 
     {{"{{"}} emit_store_constant_32byte_aligned('ONE_VAL', 1) {{"-}}"}}
@@ -61,10 +63,10 @@
 
     FqInv()
 
-    0x00
-    0x00
-    {{"{{"}} emit_slot('z') {{"-}}"}}
     0x01
+    {{"{{"}} emit_slot('z') {{"-}}"}}
+    0x00
+    0x00
     loadx
 
     0x30

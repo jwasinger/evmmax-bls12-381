@@ -10,12 +10,15 @@ class TemplateState:
         else:
             self.item_size = 1
 
-        self.alloc_inputs_done = False
+        self.alloc_mem_called = False
         self.free_input_idx = 0
         self.num_inputs = 0
+        self.inputs = {}
         self.free_slot = 0
         self.evmmax_slot_size = 48 # hardcode to bls for now
         self.allocs = {}
+        self.mem_allocs = {}
+        self.free_mem = 0
         self.indent_lvl = 0
         self.indent_size = 4
 
@@ -28,18 +31,33 @@ class TemplateState:
         self.free_slot += count * self.item_size
 
     def alloc_input(self, symbol):
-        self.inputs[symbol] = self.free_input_free_input_idx
-        self.free_input_idx += self.item_size
+        if self.alloc_mem_called:
+            raise Exception("input values must be allocated before other memory value")
+        self.inputs[symbol] = self.free_input_idx
+        self.free_input_idx += 1
+        self.mem_allocs[symbol] = self.free_mem
+        self.free_mem += 48
 
     def emit_evmmax_store_inputs(self):
         res = [
            '0x0',
            '0x0', 
            '0x0',
-           hex(self.free_input_idx),
+           hex(self.num_inputs),
            'storex'
         ]
         return res
+
+    def alloc_mem(self, symbol, size):
+        if symbol in self.mem_allocs:
+            raise Exception("symbol already allocated in memory {}".format(symbol))
+
+        self.alloc_mem_called = True
+        self.mem_allocs[symbol] = self.free_mem
+        self.free_mem += size
+
+    def emit_mem_offset(self, symbol, offset=0):
+        return hex(self.mem_allocs[symbol] + offset)
 
     def alloc_val(self, symbol):
         if symbol in self.allocs:
@@ -48,6 +66,9 @@ class TemplateState:
         self.allocs[symbol] = self.free_slot
         self.free_slot += 1
 
+    def emit_slot(self, symbol):
+        return [hex(self.allocs[symbol])]
+        
     def emit_slots_used(self):
         return [hex(self.free_slot)]
 
@@ -234,9 +255,6 @@ class TemplateState:
         else:
             return self.emit_fp2_sub(out, x, y)
 
-    def emit_slot_mem_offset(self, slot, offset=0, newline=True):
-        return hex(self.evmmax_mem_start + self.evmmax_slot_size * slot + offset)
-
     def emit_text(self, items):
         res = []
         for i, item in enumerate(items):
@@ -248,9 +266,6 @@ class TemplateState:
         res += ' ' * self.indent_lvl * self.indent_size
 
         return ''.join(res)
-
-    def emit_mem_offset(self, slot, offset=0):
-        return hex(self.evmmax_mem_start + self.allocs[slot] * self.evmmax_slot_size  + offset)
 
     def emit_load_input_vals(self):
         res = []
@@ -333,7 +348,7 @@ class TemplateState:
 
     # TODO change name to store_constant_at_slot_offset or something similar
     def emit_store_constant_32byte_aligned(self, output, val):
-        output_offset = self.evmmax_mem_start + self.allocs[output] * self.evmmax_slot_size
+        output_offset = self.mem_allocs[output]
         res = []
         val_hex = hex(val)[2:]
 
@@ -420,8 +435,14 @@ def emit_f_set_zero(out) -> str:
     global template_state
     return template_state.emit_text(template_state.emit_f_set_zero(out))
 
-def alloc_input(symbol, count):
-    pass
+def alloc_input(symbol):
+    global template_state
+    template_state.alloc_input(symbol)
+    return ''
+
+def emit_slot(symbol):
+    global template_state
+    return template_state.emit_text(template_state.emit_slot(symbol))
 
 def alloc_range(symbol, count):
     global template_state
@@ -448,9 +469,19 @@ def emit_set_val_12(output):
     global template_state
     return template_state.emit_text(template_state.emit_set_val_12(output))
 
+def alloc_mem(symbol, size):
+    global template_state
+    template_state.alloc_mem(symbol, size)
+    return ''
+
+def emit_evmmax_store_inputs():
+    global template_state
+    return template_state.emit_text(template_state.emit_evmmax_store_inputs())
+
 func_dict = {
     'alloc_range': alloc_range,
     'alloc_val': alloc_val,
+    'alloc_input': alloc_input,
     'start_block': start_block,
     'end_block': end_block,
     'ref_item': ref_item,
@@ -468,7 +499,10 @@ func_dict = {
     'emit_set_val_12': emit_set_val_12,
     'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
     'emit_check_val_nonzero': emit_check_val_nonzero,
+    'emit_evmmax_store_inputs': emit_evmmax_store_inputs,
     'emit_slots_used': emit_slots_used,
+    'alloc_mem': alloc_mem,
+    'emit_slot': emit_slot,
 }
 
 def main():

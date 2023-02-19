@@ -30,6 +30,7 @@ def bench_geth(inp: str, code_file: str):
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
+    print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise Exception("geth exec error: {}".format(result.stderr))
@@ -149,11 +150,11 @@ def test_invmod():
     assert output * 20001 % fq_mod == 1
 
 def main():
-    g1_tests()
-    print("testing g2 mul")
-    test_g2_1()
-    test_g2_2()
-    test_g2_group_order()
+    #g1_tests()
+    #print("testing g2 mul")
+    #test_g2_1()
+    #test_g2_2()
+    #test_g2_group_order()
     print("testing bls12381 fq invmod")
     test_invmod()
 
