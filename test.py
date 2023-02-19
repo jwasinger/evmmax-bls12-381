@@ -135,7 +135,7 @@ def g1_tests():
 def pad_invmod_input(val):
     hex_val = hex(val)[2:]
     if len(hex_val) < 48 * 2:
-        return '0' * (48 * 2 - len(hex_val)) + hex_val
+        return hex_val + '0' * (48 * 2 - len(hex_val))
     else:
         return hex_val
 

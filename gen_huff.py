@@ -10,7 +10,7 @@ class TemplateState:
         else:
             self.item_size = 1
 
-        self.alloc_mem_called = False
+        self.inputs_done = False
         self.free_input_idx = 0
         self.num_inputs = 0
         self.inputs = {}
@@ -26,24 +26,27 @@ class TemplateState:
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
 
-        #import pdb; pdb.set_trace()
+        self.inputs_done = True
         self.allocs[symbol] = self.free_slot
         self.free_slot += count * self.item_size
 
     def alloc_input(self, symbol):
-        if self.alloc_mem_called:
+        if self.inputs_done:
             raise Exception("input values must be allocated before other memory value")
         self.inputs[symbol] = self.free_input_idx
-        self.free_input_idx += 1
+        self.free_input_idx += self.item_size
         self.mem_allocs[symbol] = self.free_mem
-        self.free_mem += 48
+        self.free_mem += 48 * self.item_size
+
+        self.allocs[symbol] = self.free_slot
+        self.free_slot += self.item_size
 
     def emit_evmmax_store_inputs(self):
         res = [
+           hex(self.free_input_idx),
            '0x0',
            '0x0', 
            '0x0',
-           hex(self.num_inputs),
            'storex'
         ]
         return res
@@ -52,7 +55,7 @@ class TemplateState:
         if symbol in self.mem_allocs:
             raise Exception("symbol already allocated in memory {}".format(symbol))
 
-        self.alloc_mem_called = True
+        self.inputs_done = True
         self.mem_allocs[symbol] = self.free_mem
         self.free_mem += size
 
@@ -62,6 +65,9 @@ class TemplateState:
     def alloc_val(self, symbol):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
+
+        if symbol in self.inputs:
+            raise Exception("symobol already allocated as input {}".format(symbol))
 
         self.allocs[symbol] = self.free_slot
         self.free_slot += 1
