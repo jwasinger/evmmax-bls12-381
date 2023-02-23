@@ -12,6 +12,8 @@
 {{ alloc_output_f('OUTPUT_Y') -}}
 {{ alloc_output_f('OUTPUT_Z') -}}
 
+{{ alloc_output_val('SCRATCH') -}}
+
 {{ alloc_mem('MODULUS', 48) -}}
 
 // TODO remove unused range

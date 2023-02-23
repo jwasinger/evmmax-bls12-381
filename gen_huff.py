@@ -113,6 +113,18 @@ class TemplateState:
         ]
         return res
 
+    def emit_evmmax_load_val(self, output_symbol, symbol):
+        output_offset = self.mem_allocs[output_symbol]
+        val_idx = self.allocs[symbol]
+        res = [
+           hex(1),
+           hex(val_idx),
+           hex(output_offset),
+           '0x0',
+           'loadx'
+        ]
+        return res
+
     def alloc_mem(self, symbol, size):
         if symbol in self.mem_allocs:
             raise Exception("symbol already allocated in memory {}".format(symbol))
@@ -576,6 +588,10 @@ def emit_evmmax_load_outputs():
     global template_state
     return template_state.emit_text(template_state.emit_evmmax_load_outputs())
 
+def emit_evmmax_load_val(output_symbol, symbol):
+    global template_state
+    return template_state.emit_text(template_state.emit_evmmax_load_val(output_symbol, symbol))
+
 func_dict = {
     'alloc_range': alloc_range,
     'alloc_val': alloc_val,
@@ -602,6 +618,7 @@ func_dict = {
     'emit_check_val_nonzero': emit_check_val_nonzero,
     'emit_evmmax_store_inputs': emit_evmmax_store_inputs,
     'emit_evmmax_load_outputs': emit_evmmax_load_outputs,
+    'emit_evmmax_load_val': emit_evmmax_load_val,
     'emit_slots_used': emit_slots_used,
     'alloc_mem': alloc_mem,
     'emit_slot': emit_slot,
