@@ -152,13 +152,13 @@ def test_invmod():
     assert output * 20001 % fq_mod == 1
 
 def main():
-    #g1_tests()
+    g1_tests()
     #print("testing g2 mul")
     #test_g2_1()
     #test_g2_2()
     #test_g2_group_order()
-    print("testing bls12381 fq invmod")
-    test_invmod()
+    #print("testing bls12381 fq invmod")
+    #test_invmod()
 
 if __name__ == "__main__":
     main()
