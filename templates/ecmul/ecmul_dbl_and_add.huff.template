@@ -8,9 +8,9 @@
 {{ alloc_input_f('VAL_12') -}}
 {{ alloc_input_f('VAL_12_1') -}}
 
-{{ alloc_f('OUTPUT_X') -}}
-{{ alloc_f('OUTPUT_Y') -}}
-{{ alloc_f('OUTPUT_Z') -}}
+{{ alloc_output_f('OUTPUT_X') -}}
+{{ alloc_output_f('OUTPUT_Y') -}}
+{{ alloc_output_f('OUTPUT_Z') -}}
 
 // TODO remove unused range
 {{ alloc_f('TEMP_POINT_X') -}}

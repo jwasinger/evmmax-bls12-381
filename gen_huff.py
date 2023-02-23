@@ -11,9 +11,14 @@ class TemplateState:
             self.item_size = 1
 
         self.inputs_done = False
+        self.outputs_done = False
         self.free_input_idx = 0
-        self.num_inputs = 0
+        self.inputs_count = 0
         self.inputs = {}
+        self.output_val_count = 0
+
+        self.outputs = {}
+
         self.free_slot = 0
         self.evmmax_slot_size = 48 # hardcode to bls for now
         self.allocs = {}
@@ -22,32 +27,68 @@ class TemplateState:
         self.indent_lvl = 0
         self.indent_size = 4
 
+    def get_outputs_start_idx(self):
+        return min([idx for _, idx in self.outputs.items()])
+
     def alloc_range(self, symbol, count):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
 
         self.inputs_done = True
+        self.outputs_done = True
+
         self.allocs[symbol] = self.free_slot
         self.free_slot += count * self.item_size
 
-    def alloc_input(self, symbol):
+    def alloc_output_val(self, symbol):
+        self.inputs_done = True
+
+        if self.outputs_done:
+            raise Exception("output values must be allocated before other memory values")
+
+        self.outputs[symbol] = self.free_slot
+        self.allocs[symbol] = self.free_slot
+        self.mem_allocs[symbol] = self.free_mem
+
+        self.output_val_count += 1
+
+        self.free_mem += 48
+        self.free_slot += 1
+
+    def alloc_output_f(self, symbol):
+        raise Exception("not implemented")
+
+    def alloc_input_val(self, symbol):
         if self.inputs_done:
             raise Exception("input values must be allocated before other memory value")
-        self.inputs[symbol] = self.free_input_idx
-        self.free_input_idx += self.item_size
-        self.mem_allocs[symbol] = self.free_mem
-        self.free_mem += 48 * self.item_size
+        self.inputs[symbol] = self.free_slot
+        self.inputs_count += 1
 
+        self.mem_allocs[symbol] = self.free_mem
         self.allocs[symbol] = self.free_slot
-        self.free_slot += self.item_size
+        self.free_slot += 1
+        self.free_mem += 48
+
+    def alloc_input_f(self, symbol):
+        raise Exception("not implemented")
 
     def emit_evmmax_store_inputs(self):
         res = [
-           hex(self.free_input_idx),
-           '0x0',
-           '0x0', 
+           hex(self.inputs_count),
+           '0x0', # inputs always start at offset 0 in memory 
+           '0x0', # inputs always start at value index 0
            '0x0',
            'storex'
+        ]
+        return res
+
+    def emit_evmmax_load_outputs(self):
+        res = [
+           hex(self.output_val_count),
+           hex(self.get_outputs_start_idx()),
+           hex(self.get_outputs_start_idx() * 48),
+           '0x0',
+           'loadx'
         ]
         return res
 
@@ -273,16 +314,6 @@ class TemplateState:
 
         return ''.join(res)
 
-    def emit_load_input_vals(self):
-        res = []
-
-        for i in range(0, self.item_size):
-            res.append(hex(self.evmmax_mem_start + self.allocs[item] * self.evmmax_slot_size + i * self.evmmax_slot_size))
-            res.append('dup1')
-            res.append('tomontx')
-
-        return res
-    
     def __emit_check_fp2_nonzero(self, item):
         res = [
             self.emit_mem_offset(item),
@@ -484,10 +515,25 @@ def emit_evmmax_store_inputs():
     global template_state
     return template_state.emit_text(template_state.emit_evmmax_store_inputs())
 
+def alloc_input_val(symbol):
+    global template_state
+    template_state.alloc_input_val(symbol)
+    return ''
+
+def alloc_output_val(symbol):
+    global template_state
+    template_state.alloc_output_val(symbol)
+    return ''
+
+def emit_evmmax_load_outputs():
+    global template_state
+    return template_state.emit_text(template_state.emit_evmmax_load_outputs())
+
 func_dict = {
     'alloc_range': alloc_range,
     'alloc_val': alloc_val,
-    'alloc_input': alloc_input,
+    'alloc_input_val': alloc_input_val,
+    'alloc_output_val': alloc_output_val,
     'start_block': start_block,
     'end_block': end_block,
     'ref_item': ref_item,
@@ -506,6 +552,7 @@ func_dict = {
     'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
     'emit_check_val_nonzero': emit_check_val_nonzero,
     'emit_evmmax_store_inputs': emit_evmmax_store_inputs,
+    'emit_evmmax_load_outputs': emit_evmmax_load_outputs,
     'emit_slots_used': emit_slots_used,
     'alloc_mem': alloc_mem,
     'emit_slot': emit_slot,
@@ -531,7 +578,7 @@ def main():
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
     t.globals.update(func_dict)
-    result = t.render(AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
+    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)
