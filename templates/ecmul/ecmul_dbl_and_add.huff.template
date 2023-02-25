@@ -49,6 +49,8 @@
 {{ start_block() -}}
     {{ emit_f_copy('OUTPUT_X', 'ZERO_VAL') -}}
     {{ emit_f_copy('OUTPUT_Y', 'ZERO_VAL') -}}
+    // TODO: kinda awkward here to have to reload outputs.  find a better way to return 0x0...0
+    {{ emit_evmmax_load_outputs() -}}
 {{ end_block() -}}
 }
 
