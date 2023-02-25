@@ -152,12 +152,12 @@ def test_invmod():
 
 def main():
     g1_tests()
-    #print("testing g2 mul")
-    #test_g2_1()
-    #test_g2_2()
-    #test_g2_group_order()
-    #print("testing bls12381 fq invmod")
-    #test_invmod()
+    print("testing g2 mul")
+    test_g2_1()
+    test_g2_2()
+    test_g2_group_order()
+    print("testing bls12381 fq invmod")
+    test_invmod()
 
 if __name__ == "__main__":
     main()
