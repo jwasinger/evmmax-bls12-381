@@ -508,149 +508,8 @@ class TemplateState:
 
         return res
 
-template_state = None
-
-def start_block():
-    global template_state
-    template_state.start_block()
-    return ''
-
-def emit_load_items(item):
-    global template_state
-    return template_state.emit_text(template_state.emit_load_items(item))
-
-def emit_slots_used():
-    global template_state
-    return template_state.emit_text(template_state.emit_slots_used())
-
-def end_block():
-    global template_state
-    template_state.end_block()
-    return ''
-
-def emit_mem_offset(item, offset=0):
-    global template_state
-    return template_state.emit_text([template_state.emit_mem_offset(item, offset=offset)])
-
-def emit_store_constant_32byte_aligned(offset, val):
-    global template_state
-    return template_state.emit_text(template_state.emit_store_constant_32byte_aligned(offset, val))
-
-def emit_mulmontx(output, inp1, inp2) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_mulmontx(output, inp1, inp2))
-
-def emit_f_copy(out, inp) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_copy(out, inp))
-
-def emit_f_add(out, x, y) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_add(out, x, y))
-
-def emit_f_sub(out, x, y) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_sub(out, x, y))
-
-def emit_mulmontx(out, x, y) -> str:
-    global template_state
-    return template_state.emit_text([template_state.emit_mulmontx(out, x, y)])
-
-def emit_f_mul(out, x, y) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_mul(out, x, y))
-
-def emit_f_sqr(out, x) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_mul(out, x, x))
-
-def emit_f_set_one(out) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_set_one(out))
-
-def emit_f_set_zero(out) -> str:
-    global template_state
-    return template_state.emit_text(template_state.emit_f_set_zero(out))
-
-def alloc_input(symbol):
-    global template_state
-    template_state.alloc_input(symbol)
-    return ''
-
-def emit_slot(symbol):
-    global template_state
-    return template_state.emit_text(template_state.emit_slot(symbol))
-
-def alloc_range(symbol, count):
-    global template_state
-
-    template_state.alloc_range(symbol, count)
-    return ''
-
-def alloc_val(symbol):
-    global template_state
-
-    template_state.alloc_val(symbol)
-    return ''
-
-def alloc_f(symbol):
-    global template_state
-
-    template_state.alloc_f(symbol)
-    return ''
-
-def emit_check_val_nonzero(val):
-    global template_state
-    return template_state.emit_text(template_state.emit_check_val_nonzero(val))
-
-def ref_item(new_name, old_name):
-    global template_state
-    template_state.ref_item(new_name, old_name)
-    return ''
-
-def emit_set_val_12(output):
-    global template_state
-    return template_state.emit_text(template_state.emit_set_val_12(output))
-
-def alloc_mem(symbol, size):
-    global template_state
-    template_state.alloc_mem(symbol, size)
-    return ''
-
-def emit_evmmax_store_inputs():
-    global template_state
-    return template_state.emit_text(template_state.emit_evmmax_store_inputs())
-
-def alloc_input_val(symbol):
-    global template_state
-    template_state.alloc_input_val(symbol)
-    return ''
-
-def alloc_output_val(symbol):
-    global template_state
-    template_state.alloc_output_val(symbol)
-    return ''
-
-def alloc_input_f(symbol):
-    global template_state
-    template_state.alloc_input_f(symbol)
-    return ''
-
-def alloc_output_f(symbol):
-    global template_state
-    template_state.alloc_output_f(symbol)
-    return ''
-
-def emit_evmmax_load_outputs():
-    global template_state
-    return template_state.emit_text(template_state.emit_evmmax_load_outputs())
-
-def emit_evmmax_load_val(output_symbol, symbol):
-    global template_state
-    return template_state.emit_text(template_state.emit_evmmax_load_val(output_symbol, symbol))
-
 def main():
-    global template_state
+    template_state = None
     if len(sys.argv) != 4:
         raise Exception("bad argument count")
 
@@ -669,7 +528,7 @@ def main():
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
     t.globals.update(template_state.get_stdlib())
-    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
+    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits)
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)
