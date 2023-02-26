@@ -284,19 +284,19 @@ class TemplateState:
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
-        return self.__emit_mulmontx(out_slot, x_slot, y_slot)
+        return [self.__emit_mulmontx(out_slot, x_slot, y_slot)]
 
     def emit_addmodx(self, out, x, y):
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
-        return self.__emit_addmodx(out_slot, x_slot, y_slot)
+        return [self.__emit_addmodx(out_slot, x_slot, y_slot)]
 
     def emit_submodx(self, out, x, y):
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
-        return self.__emit_submodx(out_slot, x_slot, y_slot)
+        return [self.__emit_submodx(out_slot, x_slot, y_slot)]
 
     def emit_f_copy(self, output_item, input_item):
         output_item_slot = self.allocs[output_item]
@@ -377,25 +377,25 @@ class TemplateState:
 
     def emit_f_add(self, out, x, y):
         if self.item_size == 1:
-            return [self.emit_addmodx(out, x, y)]
+            return self.emit_addmodx(out, x, y)
         else:
             return self.emit_fp2_add(out, x, y)
 
     def emit_f_sqr(self, out, x):
         if self.item_size == 1:
-            return [self.emit_mulmontx(out, x, x)]
+            return self.emit_mulmontx(out, x, x)
         else:
             return self.emit_fp2_sqr(out, x)
 
     def emit_f_mul(self, out, x, y):
         if self.item_size == 1:
-            return [self.emit_mulmontx(out, x, y)]
+            return self.emit_mulmontx(out, x, y)
         else:
             return self.emit_fp2_mul(out, x, y)
 
     def emit_f_sub(self, out, x, y):
         if self.item_size == 1:
-            return [self.emit_submodx(out, x, y)]
+            return self.emit_submodx(out, x, y)
         else:
             return self.emit_fp2_sub(out, x, y)
 
