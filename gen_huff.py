@@ -3,6 +3,21 @@ import os
 import math
 from jinja2.nativetypes import NativeEnvironment
 
+def wrap_directive(template_state, fn):
+        def wrapped(*args, **kwargs):
+            try:
+                fn(*args, **kwargs)
+                return ''
+            except Exception as e:
+                import pdb; pdb.set_trace()
+                foo = 'bar'
+        return wrapped
+
+def wrap_emit(template_state, fn):
+    def wrapped(*args, **kwargs):
+        return template_state.emit_text(fn(*args, **kwargs))
+    return wrapped
+
 class TemplateState:
     def __init__(self, g2=False):
         if g2:
@@ -26,6 +41,42 @@ class TemplateState:
         self.free_mem = 0
         self.indent_lvl = 0
         self.indent_size = 4
+
+        self.compiled_text = None
+
+    def get_stdlib(self):
+        return {
+            'alloc_range': wrap_directive(self, self.alloc_range),
+            'alloc_val': wrap_directive(self, self.alloc_val),
+            'alloc_input_val': wrap_directive(self, self.alloc_input_val),
+            'alloc_output_val': wrap_directive(self, self.alloc_output_val),
+            'alloc_input_f': wrap_directive(self, self.alloc_input_f),
+            'alloc_output_f': wrap_directive(self, self.alloc_output_f),
+            'start_block': wrap_directive(self, self.start_block),
+            'end_block': wrap_directive(self, self.end_block),
+            'ref_item': wrap_directive(self, self.ref_item),
+            'alloc_f': wrap_directive(self, self.alloc_f),
+            'alloc_mem': wrap_directive(self, self.alloc_mem),
+            'emit_load_items': wrap_emit(self, self.emit_load_items),
+            'emit_f_copy': wrap_emit(self, self.emit_f_copy),
+            'emit_mulmontx': wrap_emit(self, self.emit_mulmontx),
+            'emit_f_mul': wrap_emit(self, self.emit_f_mul),
+            'emit_f_sqr': wrap_emit(self, self.emit_f_sqr),
+            'emit_f_add': wrap_emit(self, self.emit_f_add),
+            'emit_f_sub': wrap_emit(self, self.emit_f_sub), 
+            'emit_mem_offset': wrap_emit(self, self.emit_mem_offset),
+            'emit_f_set_one': wrap_emit(self, self.emit_f_set_one),
+            'emit_f_set_zero': wrap_emit(self, self.emit_f_set_zero),
+            'emit_f_copy': wrap_emit(self, self.emit_f_copy),
+            'emit_set_val_12': wrap_emit(self, self.emit_set_val_12),
+            'emit_store_constant_32byte_aligned': wrap_emit(self, self.emit_store_constant_32byte_aligned),
+            'emit_check_val_nonzero': wrap_emit(self, self.emit_check_val_nonzero),
+            'emit_evmmax_store_inputs': wrap_emit(self, self.emit_evmmax_store_inputs),
+            'emit_evmmax_load_outputs': wrap_emit(self, self.emit_evmmax_load_outputs),
+            'emit_evmmax_load_val': wrap_emit(self, self.emit_evmmax_load_val),
+            'emit_slots_used': wrap_emit(self, self.emit_slots_used),
+            'emit_slot': wrap_emit(self, self.emit_slot)
+        }
 
     def get_outputs_start_idx(self):
         return min([idx for _, idx in self.outputs.items()])
@@ -133,8 +184,11 @@ class TemplateState:
         self.mem_allocs[symbol] = self.free_mem
         self.free_mem += size
 
-    def emit_mem_offset(self, symbol, offset=0):
+    def __emit_mem_offset(self, symbol, offset=0):
         return hex(self.mem_allocs[symbol] + offset)
+
+    def emit_mem_offset(self, symbol, offset=0):
+        return [hex(self.mem_allocs[symbol] + offset)]
 
     def alloc_f(self, symbol):
         if symbol in self.allocs:
@@ -359,16 +413,16 @@ class TemplateState:
 
     def __emit_check_fp2_nonzero(self, item):
         res = [
-            self.emit_mem_offset(item),
+            self.__emit_mem_offset(item),
             'mload',
-            self.emit_mem_offset(item, offset=32),
+            self.__emit_mem_offset(item, offset=32),
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
             'or',
-            self.emit_mem_offset(item),
+            self.__emit_mem_offset(item),
             'mload',
-            self.emit_mem_offset(item, offset=32),
+            self.__emit_mem_offset(item, offset=32),
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
@@ -380,9 +434,9 @@ class TemplateState:
 
     def __emit_check_fp_nonzero(self, item):
         res = [
-            self.emit_mem_offset(item),
+            self.__emit_mem_offset(item),
             'mload',
-            self.emit_mem_offset(item, offset=32),
+            self.__emit_mem_offset(item, offset=32),
             'mload',
             '0xffffffffffffffffffffffffffffffff00000000000000000000000000000000',
             'and',
@@ -409,6 +463,9 @@ class TemplateState:
         res.append('mstore')
 
         return res
+
+    def emit_load_items(self):
+        return [] 
 
     def emit_set_val_12_fq(self, output):
         output_offset = self.allocs[output] * self.evmmax_slot_size
@@ -592,39 +649,6 @@ def emit_evmmax_load_val(output_symbol, symbol):
     global template_state
     return template_state.emit_text(template_state.emit_evmmax_load_val(output_symbol, symbol))
 
-func_dict = {
-    'alloc_range': alloc_range,
-    'alloc_val': alloc_val,
-    'alloc_input_val': alloc_input_val,
-    'alloc_output_val': alloc_output_val,
-    'alloc_input_f': alloc_input_f,
-    'alloc_output_f': alloc_output_f,
-    'start_block': start_block,
-    'end_block': end_block,
-    'ref_item': ref_item,
-    'emit_load_items': emit_load_items,
-    'emit_f_copy': emit_f_copy,
-    'emit_mulmontx': emit_mulmontx,
-    'emit_f_mul': emit_f_mul,
-    'emit_f_sqr': emit_f_sqr,
-    'emit_f_add': emit_f_add,
-    'emit_f_sub': emit_f_sub, 
-    'emit_mem_offset': emit_mem_offset,
-    'emit_f_set_one': emit_f_set_one,
-    'emit_f_set_zero': emit_f_set_zero,
-    'emit_f_copy': emit_f_copy,
-    'emit_set_val_12': emit_set_val_12,
-    'emit_store_constant_32byte_aligned': emit_store_constant_32byte_aligned,
-    'emit_check_val_nonzero': emit_check_val_nonzero,
-    'emit_evmmax_store_inputs': emit_evmmax_store_inputs,
-    'emit_evmmax_load_outputs': emit_evmmax_load_outputs,
-    'emit_evmmax_load_val': emit_evmmax_load_val,
-    'emit_slots_used': emit_slots_used,
-    'alloc_mem': alloc_mem,
-    'emit_slot': emit_slot,
-    'alloc_f': alloc_f,
-}
-
 def main():
     global template_state
     if len(sys.argv) != 4:
@@ -644,7 +668,7 @@ def main():
     exponent = 1
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
-    t.globals.update(func_dict)
+    t.globals.update(template_state.get_stdlib())
     result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits, template_state=template_state)
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
