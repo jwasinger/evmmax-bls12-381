@@ -102,12 +102,12 @@ end1:
     {{ emit_f_copy('TEMP_POINT_Y', 'OUTPUT_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'OUTPUT_Z') -}}
 
-    {{ emit_f_mul('TEMP0', 'TEMP_POINT_Y', 'TEMP_POINT_Y') -}}
+    {{ emit_f_sqr('TEMP0', 'TEMP_POINT_Y') -}}
     {{ emit_f_add('OUTPUT_Z', 'TEMP0', 'TEMP0') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_mul('TEMP1', 'TEMP_POINT_Y', 'TEMP_POINT_Z') -}}
-    {{ emit_f_mul('TEMP2', 'TEMP_POINT_Z', 'TEMP_POINT_Z') -}}
+    {{ emit_f_sqr('TEMP2', 'TEMP_POINT_Z') -}}
     {{ emit_f_mul('TEMP2', 'TEMP2', 'VAL_12') -}}
     {{ emit_f_mul('OUTPUT_X', 'TEMP2', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Y', 'TEMP0', 'TEMP2') -}}
