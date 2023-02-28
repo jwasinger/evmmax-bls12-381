@@ -26,7 +26,7 @@ def encode_g2mul_input(scalar, point):
         pad_input(point.z1)
 
 def bench_geth(inp: str, code_file: str):
-    geth_path = os.path.join(os.getcwd(), "go-ethereum-eip5843/build/bin/evm")
+    geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)

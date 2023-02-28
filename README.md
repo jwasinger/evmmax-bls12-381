@@ -11,7 +11,7 @@ git submodule update --init
 
 Build Geth:
 ```
-(cd go-ethereum-eip5843 && make all)
+(cd go-ethereum && make all)
 ```
 
 Build Huff compiler:
