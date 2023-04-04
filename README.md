@@ -1,6 +1,6 @@
 # evmmax-bls12381
 
-This repository contains EVM implementations of BLS12831 G1/G2 point multiplication using [EIP-5843](https://github.com/ethereum/EIPs/pull/5843).
+This repository contains EVM implementations of BLS12831 G1/G2 point multiplication using [EIP-6601](https://github.com/ethereum/EIPs/pull/6601).
 
 ## Usage
 
