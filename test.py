@@ -26,7 +26,7 @@ def encode_g2mul_input(scalar, point):
         pad_input(point.z1)
 
 def bench_geth(inp: str, code_file: str):
-    geth_path = os.path.join(os.getcwd(), "go-ethereum-eip5843/build/bin/evm")
+    geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
 
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
@@ -74,7 +74,7 @@ def test_g1_3():
     inp = encode_g1mul_input(scalar, point)
     res = run_geth_g1(inp)
 
-    assert res == '0a59e0a886919a3e3b746e549319d23dae362a728a29b6d804d02f86aeb43bd288207db6420a5d639d74409f5c53442d0eff673f0d01d28ace893c37229adaa3f139dcc81306308583c4fe2e7c5d70f9778e2d71e22804b2878f1b6d644f087b03adbc0d6fe485af1096a983741bf93f28cbbb920607abff8856ea833538197d094e67c9559d61baaaa51ff2f01bc682'
+    assert res == '189d03e87d85fb514b3bce52c4599d063f4aeb6c3adba3777e785041eeb7fc30bfd645406265b582ed1df433b431cdb1042876dbdf4e0654cb87d595e12e84907c42dcaa610db318a1e1e7c07296be3c1075cc05603e36d0f5f1b8c61ae560c309fab0f8549cb0ebf102a3bc28f8945f42357940b6929e1addecc2de2693822375ff704ba7f9a60bc64dc2258a62ee31'
 
 def test_g1_1():
     point = g1_gen()
@@ -133,6 +133,8 @@ def g1_tests():
 
 def pad_invmod_input(val):
     hex_val = hex(val)[2:]
+    if len(hex_val) % 2 != 0:
+        hex_val = '0'+hex_val
     if len(hex_val) < 48 * 2:
         return '0' * (48 * 2 - len(hex_val)) + hex_val
     else:

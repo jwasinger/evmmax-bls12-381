@@ -1,9 +1,9 @@
 [submodule "huff-rs"]
 	path = huff-rs
 	url = https://github.com/jwasinger/huff-rs
-[submodule "go-ethereum-eip5843"]
-	path = go-ethereum-eip5843
-	url = https://github.com/jwasinger/go-ethereum
 [submodule "templates/invmod/addchain"]
 	path = templates/invmod/addchain
 	url = https://github.com/jwasinger/addchain
+[submodule "go-ethereum"]
+	path = go-ethereum
+	url = https://github.com/jwasinger/go-ethereum

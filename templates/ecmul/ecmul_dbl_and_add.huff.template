@@ -1,50 +1,56 @@
-{{ alloc_range('ZERO_VAL', 1) -}}
-{{ alloc_slot('ONE_VAL') -}}
-{{ alloc_slot('MODULUS') -}}
+{{ alloc_input_val('ONE_VAL') -}}
 
-{{ alloc_range('G1_GEN_X', 1) -}}
-{{ alloc_range('G1_GEN_Y', 1) -}}
-{{ alloc_range('G1_GEN_Z', 1) -}}
+// TODO rename this as it doesn't have to be the generator point
+{{ alloc_input_f('G1_GEN_X') -}}
+{{ alloc_input_f('G1_GEN_Y') -}}
+{{ alloc_input_f('G1_GEN_Z') -}}
 
-{{ alloc_range('OUTPUT_X', 1) -}}
-{{ alloc_range('OUTPUT_Y', 1) -}}
-{{ alloc_range('OUTPUT_Z', 1) -}}
+{{ alloc_input_val('VAL_12') -}}
+{{ alloc_input_val('VAL_12_1') -}}
+
+{{ alloc_output_f('OUTPUT_X') -}}
+{{ alloc_output_f('OUTPUT_Y') -}}
+{{ alloc_output_f('OUTPUT_Z') -}}
+
+{{ alloc_output_val('SCRATCH') -}}
+
+{{ alloc_mem('MODULUS', 48) -}}
 
 // TODO remove unused range
-{{ alloc_range('TEMP_POINT_X', 1) -}}
-{{ alloc_range('TEMP_POINT_Y', 1) -}}
-{{ alloc_range('TEMP_POINT_Z', 1) -}}
+{{ alloc_f('TEMP_POINT_X') -}}
+{{ alloc_f('TEMP_POINT_Y') -}}
+{{ alloc_f('TEMP_POINT_Z') -}}
 
-{{ alloc_range('TEMP0', 1) -}}
-{{ alloc_range('TEMP1', 1) -}}
-{{ alloc_range('TEMP2', 1) -}}
-{{ alloc_range('TEMP3', 1) -}}
-{{ alloc_range('TEMP4', 1) -}}
-{{ alloc_range('TEMP5', 1) -}}
-{{ alloc_range('TEMP6', 1) -}}
-{{ alloc_range('TEMP7', 1) -}}
+{{ alloc_f('TEMP0') -}}
+{{ alloc_f('TEMP1') -}}
+{{ alloc_f('TEMP2') -}}
+{{ alloc_f('TEMP3') -}}
+{{ alloc_f('TEMP4') -}}
+{{ alloc_f('TEMP5') -}}
+{{ alloc_f('TEMP6') -}}
+{{ alloc_f('TEMP7') -}}
 
 {{ ref_item('OUTPUT_TEMP_X', 'TEMP5') -}}
 {{ ref_item('OUTPUT_TEMP_Y', 'TEMP6') -}}
 {{ ref_item('OUTPUT_TEMP_Z', 'TEMP7') -}}
 
-{{ alloc_slot('VAL_12') -}}
-{{ alloc_slot('VAL_12_1') -}}
+{{ alloc_f('ZERO_VAL') -}}
 
-{{ alloc_slot('FP2_TEMP0') -}}
-{{ alloc_slot('FP2_TEMP1') -}}
-{{ alloc_slot('FP2_TEMP2') -}}
-{{ alloc_slot('FP2_TEMP3') -}}
+{{ alloc_val('FP2_TEMP0') -}}
+{{ alloc_val('FP2_TEMP1') -}}
+{{ alloc_val('FP2_TEMP2') -}}
+{{ alloc_val('FP2_TEMP3') -}}
 
 #define macro SetG1GenZTo1() = takes(0) returns(0) {
     {{ emit_f_set_one('G1_GEN_Z') -}}
-    {{ emit_item_to_mont('G1_GEN_Z') -}}
 }
 
 #define macro InfCheckSetZero() = takes(0) returns(0) {
 {{ start_block() -}}
     {{ emit_f_copy('OUTPUT_X', 'ZERO_VAL') -}}
     {{ emit_f_copy('OUTPUT_Y', 'ZERO_VAL') -}}
+    // TODO: kinda awkward here to have to reload outputs.  find a better way to return 0x0...0
+    {{ emit_evmmax_load_outputs() -}}
 {{ end_block() -}}
 }
 
@@ -96,12 +102,12 @@ end1:
     {{ emit_f_copy('TEMP_POINT_Y', 'OUTPUT_Y') -}}
     {{ emit_f_copy('TEMP_POINT_Z', 'OUTPUT_Z') -}}
 
-    {{ emit_f_mul('TEMP0', 'TEMP_POINT_Y', 'TEMP_POINT_Y') -}}
+    {{ emit_f_sqr('TEMP0', 'TEMP_POINT_Y') -}}
     {{ emit_f_add('OUTPUT_Z', 'TEMP0', 'TEMP0') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Z', 'OUTPUT_Z', 'OUTPUT_Z') -}}
     {{ emit_f_mul('TEMP1', 'TEMP_POINT_Y', 'TEMP_POINT_Z') -}}
-    {{ emit_f_mul('TEMP2', 'TEMP_POINT_Z', 'TEMP_POINT_Z') -}}
+    {{ emit_f_sqr('TEMP2', 'TEMP_POINT_Z') -}}
     {{ emit_f_mul('TEMP2', 'TEMP2', 'VAL_12') -}}
     {{ emit_f_mul('OUTPUT_X', 'TEMP2', 'OUTPUT_Z') -}}
     {{ emit_f_add('OUTPUT_Y', 'TEMP0', 'TEMP2') -}}
@@ -129,7 +135,6 @@ end1:
 #define macro InitOutput() = takes(0) returns(0) {
     {{ emit_f_set_zero('OUTPUT_X') -}}
     {{ emit_f_set_one('OUTPUT_Y') -}}
-    {{ emit_item_to_mont('OUTPUT_Y') -}}
     {{ emit_f_set_zero('OUTPUT_Z') -}}
 }
 
@@ -181,14 +186,6 @@ end1:
 {{ end_block() -}}
 }
 
-#define macro CONVERT_OUTPUT_TO_NORM() = takes(0) returns(0) {
-{{ start_block() -}}
-    {{ emit_f_mul('OUTPUT_X', 'OUTPUT_X', 'ONE_VAL') }}
-    {{ emit_f_mul('OUTPUT_Y', 'OUTPUT_Y', 'ONE_VAL') }}
-    {{ emit_f_mul('OUTPUT_Z', 'OUTPUT_Z', 'ONE_VAL') }}
-{{ end_block() -}}
-}
-
 #define macro MAIN() = takes(0) returns(0) {
 {{ start_block() -}}
     // allocate all the memory we will use
@@ -198,10 +195,11 @@ end1:
 
     {{ emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) }}
 
-    0x00
-    0x06
+    {{ emit_slots_used() }}
+    0x30
     {{ emit_mem_offset('MODULUS') -}}
-    setmodx
+    0x00
+    setupx
 
     // load the scalar
     0x00
@@ -216,14 +214,10 @@ end1:
 
     //stack: scalar
 
-    {{ emit_item_to_mont('G1_GEN_X') -}}
-    {{ emit_item_to_mont('G1_GEN_Y') -}}
-
     {{ emit_set_val_12('VAL_12') -}}
     {{ emit_store_constant_32byte_aligned('ONE_VAL', 1) -}}
 
-    //VAL_12 < 12
-    {{ emit_item_to_mont('VAL_12') -}}
+    {{ emit_evmmax_store_inputs() -}}
 
     SetG1GenZTo1()
 
@@ -284,14 +278,12 @@ double_step_{{i}}:
     // shift-out the top bit of the scalar
     0x01
     shl
-
-
 {% endfor %}
 
 // convert the output to canonical form
 end:
+    {{ emit_evmmax_load_outputs() -}}
     InfCheck()
-    //CONVERT_OUTPUT_TO_NORM()
 
     // TODO
     // CONVERT_TO_AFFINE()
