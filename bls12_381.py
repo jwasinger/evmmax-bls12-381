@@ -42,6 +42,13 @@ class G1ProjPoint:
         self.y = y
         self.z = z
 
+    @staticmethod
+    def generator():
+        g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
+        g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
+        g1_gen_z = 1
+        g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, g1_gen_z)
+
     def from_affine(affine_point):
         return G1ProjPoint(affine_point.x, affine_point.y, to_mont(1))
 
@@ -52,11 +59,77 @@ class G1ProjPoint:
         z_inv = fq_inv(self.z)
         return G1AffinePoint(fq_mul(self.x, z_inv), fq_mul(self.y, z_inv))
 
-    def add(p1, p2):
-        pass
+    def add(self, rhs):
+        t0 = fq_mul(self.x, rhs.x)
+        t1 = fq_mul(self.y, rhs.y)
+        t2 = fq_mul(self.z, rhs.z)
+        t3 = fq_add(self.x, self.y)
+        t4 = fq_add(rhs.x, rhs.y)
+        t3 = fq_mul(t3, t4)
+        t4 = fq_add(t0, t1)
+        t3 = fq_sub(t3, t4)
+        t4 = fq_add(self.y, self.z)
+        x3 = fq_add(rhs.y, rhs.z)
+        t4 = fq_mul(t4, x3)
+        x3 = fq_add(t1, t2)
+        t4 = fq_sub(t4, x3)
+        x3 = fq_add(self.x, self.z)
+        y3 = fq_add(rhs.x, rhs.z)
+        x3 = fq_mul(x3, y3)
+        y3 = fq_add(t0, t2)
+        y3 = fq_sub(x3, y3)
+        x3 = fq_add(t0, t0)
+        t0 = fq_add(x3, t0)
+        t2 = self.mul_by_3b(t2);
+        z3 = fq_add(t1, t2)
+        t1 = fq_sub(t1, t2)
+        y3 = self.mul_by_3b(y3)
+        x3 = fq_mul(t4, y3)
+        t2 = fq_mul(t3, t1)
+        x3 = fq_sub(t2, x3)
+        y3 = fq_mul(y3, t0)
+        t1 = fq_mul(t1, z3)
+        y3 = fq_add(t1, y3)
+        t0 = fq_mul(t0, t3)
+        z3 = fq_mul(z3, t4)
+        z3 = fq_add(z3, t0)
 
-    def double(p1, p2):
-        pass
+        return G1ProjPoint(x3, y3, z3)
+
+    def double(self):
+        t0 = fq_mul(self.y, self.y)
+        z3 = fq_add(t0, t0)
+        z3 = fq_add(z3, z3)
+        z3 = fq_add(z3, z3)
+        t1 = fq_mul(self.y, self.z)
+        t2 = fq_mul(self.z, self.z)
+        t2 = self.mul_by_3b(t2);
+        x3 = fq_mul(t2, z3)
+        y3 = fq_add(t0, t2)
+        z3 = fq_mul(t1, z3)
+        t1 = fq_add(t2, t2)
+        t2 = fq_add(t1, t2)
+        t0 = fq_sub(t0, t2)
+        y3 = fq_mul(t0, y3)
+        y3 = fq_add(x3, y3)
+        t1 = fq_mul(self.x, self.y)
+        x3 = fq_mul(t0, t1)
+        x3 = fq_add(x3, x3)
+
+        return G1ProjPoint(x3, y3, z3)
+
+    def mul(self, scalar: int):
+        scalar_bits = bin(scalar)[2:]
+        scalar_bits = map(int(digit) for digit in scalar_bits)
+
+        acc = G1ProjPoint.generator()
+
+        for bit in reversed(scalar_bits):
+                acc = acc.double()
+                if bit == 1:
+                        acc = self.add(acc)
+
+        return acc
 
     def is_on_curve(self):
         # TODO: return Y^2 Z = X^3 + b Z^3
