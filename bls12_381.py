@@ -1,6 +1,6 @@
-SUBGROUP_ORDER = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
-fq_mod = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
-r = 1 << 384
+SUBGROUP_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617
+fq_mod =         21888242871839275222246405745257275088696311157297823662689037894645226208583
+r = 1 << 256 
 mod_inv = pow(r, -1, fq_mod)
 r_squared = (r ** 2) % fq_mod
 
@@ -40,7 +40,7 @@ class G1AffinePoint:
         return self.x == other.x and self.y == other.y
 
 def mul_by_3b(val):
-    val_12 = to_mont(12)
+    val_12 = to_mont(9)
     return fq_mul(val, val_12)
 
 class G1ProjPoint:
@@ -51,8 +51,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator_mont():
-        g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
-        g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
+        g1_gen_x = 1
+        g1_gen_y = 2 
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(to_mont(g1_gen_x), to_mont(g1_gen_y), to_mont(g1_gen_z))
 
@@ -60,8 +60,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator():
-        g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
-        g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
+        g1_gen_x = 1
+        g1_gen_y = 2
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, g1_gen_z)
 
