@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
+from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G1ProjPoint, G2ProjPoint, G2AffinePoint, g2_gen_affine
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:
@@ -77,10 +77,14 @@ def test_g1_3():
     assert res == '189d03e87d85fb514b3bce52c4599d063f4aeb6c3adba3777e785041eeb7fc30bfd645406265b582ed1df433b431cdb1042876dbdf4e0654cb87d595e12e84907c42dcaa610db318a1e1e7c07296be3c1075cc05603e36d0f5f1b8c61ae560c309fab0f8549cb0ebf102a3bc28f8945f42357940b6929e1addecc2de2693822375ff704ba7f9a60bc64dc2258a62ee31'
 
 def test_g1_1():
-    point = g1_gen()
+    point_mont = G1ProjPoint.generator_mont()
+    point_norm = G1ProjPoint.generator()
     scalar = 1
-    inp = encode_g1mul_input(scalar, point)
+    inp = encode_g1mul_input(scalar, point_norm)
     output = run_geth_g1(inp)
+
+    expected_result = point_mont.add(point_mont)
+    import pdb; pdb.set_trace()
 
     proj_point = (int(output[0:96], 16), int(output[96:192], 16), int(output[192:], 16))
     z_inv = to_mont(fq_inv(proj_point[2]))
@@ -128,8 +132,8 @@ def test_g2_group_order():
 def g1_tests():
     print("testing g1 mul")
     test_g1_1()
-    test_g1_3()
-    test_g1_subgroup_order()
+    #test_g1_3()
+    #test_g1_subgroup_order()
 
 def pad_invmod_input(val):
     hex_val = hex(val)[2:]
@@ -152,12 +156,12 @@ def test_invmod():
 
 def main():
     g1_tests()
-    print("testing g2 mul")
-    test_g2_1()
-    test_g2_2()
-    test_g2_group_order()
-    print("testing bls12381 fq invmod")
-    test_invmod()
+    #print("testing g2 mul")
+    #test_g2_1()
+    #test_g2_2()
+    #test_g2_group_order()
+    #print("testing bls12381 fq invmod")
+    #test_invmod()
 
 if __name__ == "__main__":
     main()

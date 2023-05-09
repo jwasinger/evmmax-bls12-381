@@ -36,6 +36,10 @@ class G1AffinePoint:
         self.x = x
         self.y = y
 
+def mul_by_3b(val):
+    val_12 = to_mont(12)
+    return fq_mul(val, val_12)
+
 class G1ProjPoint:
     def __init__(self, x, y, z):
         self.x = x
@@ -43,11 +47,22 @@ class G1ProjPoint:
         self.z = z
 
     @staticmethod
+    def generator_mont():
+        g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
+        g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
+        g1_gen_z = 1
+        g1_gen_point = G1ProjPoint(to_mont(g1_gen_x), to_mont(g1_gen_y), to_mont(g1_gen_z))
+
+        return g1_gen_point
+
+    @staticmethod
     def generator():
         g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
         g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, g1_gen_z)
+
+        return g1_gen_point
 
     def from_affine(affine_point):
         return G1ProjPoint(affine_point.x, affine_point.y, to_mont(1))
@@ -80,10 +95,10 @@ class G1ProjPoint:
         y3 = fq_sub(x3, y3)
         x3 = fq_add(t0, t0)
         t0 = fq_add(x3, t0)
-        t2 = self.mul_by_3b(t2);
+        t2 = mul_by_3b(t2);
         z3 = fq_add(t1, t2)
         t1 = fq_sub(t1, t2)
-        y3 = self.mul_by_3b(y3)
+        y3 = mul_by_3b(y3)
         x3 = fq_mul(t4, y3)
         t2 = fq_mul(t3, t1)
         x3 = fq_sub(t2, x3)
@@ -103,7 +118,7 @@ class G1ProjPoint:
         z3 = fq_add(z3, z3)
         t1 = fq_mul(self.y, self.z)
         t2 = fq_mul(self.z, self.z)
-        t2 = self.mul_by_3b(t2);
+        t2 = mul_by_3b(t2);
         x3 = fq_mul(t2, z3)
         y3 = fq_add(t0, t2)
         z3 = fq_mul(t1, z3)
@@ -120,7 +135,7 @@ class G1ProjPoint:
 
     def mul(self, scalar: int):
         scalar_bits = bin(scalar)[2:]
-        scalar_bits = map(int(digit) for digit in scalar_bits)
+        scalar_bits = [int(digit) for digit in scalar_bits]
 
         acc = G1ProjPoint.generator()
 
@@ -205,9 +220,9 @@ def g2_point_from_raw(raw):
     to_norm(int(raw[384:480], 16)),
     to_norm(int(raw[480:576], 16)))
     
-g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
-g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
-g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, 1)
+# g1_gen_x = 3685416753713387016781088315183077757961620795782546409894578378688607592378376318836054947676345821548104185464507
+# g1_gen_y = 1339506544944476473020471379941921221584933875938349620426543736416511423956333506472724655353366534992391756441569
+# g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, 1)
 
 g2_gen_x_0 = 352701069587466618187139116011060144890029952792775240219908644239793785735715026873347600343865175952761926303160
 g2_gen_x_1 = 3059144344244213709971259814753781636986470325476647558659373206291635324768958432433509563104347017837885763365758
