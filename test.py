@@ -60,7 +60,17 @@ def parse_geth_output_g2(output):
 def run_geth_invmod(inp):
     return bench_geth(inp, "build/artifacts/invmod/invmod.hex")
 
-def test_g1_subgroup_order():
+def test_g1_ref_properties():
+    infinity = G1ProjPoint.infinity_mont()
+    point = G1ProjPoint.generator_mont()
+
+    # P + infinity == P
+    assert point.add(infinity).to_affine().eq(point.to_affine())
+
+    # P + P == P * 2
+    assert point.add(point).to_affine().eq(point.mul(2).to_affine())
+
+def test_g1_ecmul_subgroup_order():
     point = G1ProjPoint.generator()
     point_mont = G1ProjPoint.generator_mont()
     scalar = SUBGROUP_ORDER
@@ -71,7 +81,7 @@ def test_g1_subgroup_order():
 
     assert res == '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
-def test_g1_3():
+def test_g1_ecmul_3():
     point = g1_gen()
     scalar = 3
     inp = encode_g1mul_input(scalar, point)
@@ -79,7 +89,7 @@ def test_g1_3():
 
     assert res == '189d03e87d85fb514b3bce52c4599d063f4aeb6c3adba3777e785041eeb7fc30bfd645406265b582ed1df433b431cdb1042876dbdf4e0654cb87d595e12e84907c42dcaa610db318a1e1e7c07296be3c1075cc05603e36d0f5f1b8c61ae560c309fab0f8549cb0ebf102a3bc28f8945f42357940b6929e1addecc2de2693822375ff704ba7f9a60bc64dc2258a62ee31'
 
-def test_g1_1():
+def test_g1_ecmul_1():
     point_mont = G1ProjPoint.generator_mont()
     point_norm = G1ProjPoint.generator()
     scalar = 1
@@ -158,13 +168,15 @@ def test_invmod():
     assert output * 20001 % fq_mod == 1
 
 def main():
-    g1_tests()
+    #g1_tests()
     #print("testing g2 mul")
     #test_g2_1()
     #test_g2_2()
     #test_g2_group_order()
     #print("testing bls12381 fq invmod")
     #test_invmod()
+
+    test_g1_ref_properties()
 
 if __name__ == "__main__":
     main()

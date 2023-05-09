@@ -36,6 +36,9 @@ class G1AffinePoint:
         self.x = x
         self.y = y
 
+    def eq(self, other) -> bool:
+        return self.x == other.x and self.y == other.y
+
 def mul_by_3b(val):
     val_12 = to_mont(12)
     return fq_mul(val, val_12)
@@ -157,7 +160,9 @@ class G1ProjPoint:
         pass
 
     def is_inf(self):
-        pass
+        if self.x == 0 and self.y != 0 and self.z == 0:
+            return True
+        return False
 
 def fq2_mul(x, y) -> (int, int):
     t0 = fq_mul(x[0], y[0])
