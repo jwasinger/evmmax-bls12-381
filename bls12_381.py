@@ -64,6 +64,12 @@ class G1ProjPoint:
 
         return g1_gen_point
 
+    def infinity():
+        return G1ProjPoint(0, 1, 0)
+
+    def infinity_mont():
+        return G1ProjPoint(0, to_mont(1), 0)
+
     def from_affine(affine_point):
         return G1ProjPoint(affine_point.x, affine_point.y, to_mont(1))
 
@@ -137,9 +143,9 @@ class G1ProjPoint:
         scalar_bits = bin(scalar)[2:]
         scalar_bits = [int(digit) for digit in scalar_bits]
 
-        acc = G1ProjPoint.generator()
+        acc = G1ProjPoint.infinity_mont()
 
-        for bit in reversed(scalar_bits):
+        for bit in scalar_bits:
                 acc = acc.double()
                 if bit == 1:
                         acc = self.add(acc)

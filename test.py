@@ -61,8 +61,11 @@ def run_geth_invmod(inp):
     return bench_geth(inp, "build/artifacts/invmod/invmod.hex")
 
 def test_g1_subgroup_order():
-    point = g1_gen()
+    point = G1ProjPoint.generator()
+    point_mont = G1ProjPoint.generator_mont()
     scalar = SUBGROUP_ORDER
+    expected_res = point_mont.mul(scalar)
+    import pdb; pdb.set_trace()
     inp = encode_g1mul_input(scalar, point)
     res = run_geth_g1(inp)
 
@@ -83,8 +86,8 @@ def test_g1_1():
     inp = encode_g1mul_input(scalar, point_norm)
     output = run_geth_g1(inp)
 
-    expected_result = point_mont.add(point_mont)
-    import pdb; pdb.set_trace()
+    expected_result = point_mont.double()
+    expected_result_mul = point_mont.mul(2)
 
     proj_point = (int(output[0:96], 16), int(output[96:192], 16), int(output[192:], 16))
     z_inv = to_mont(fq_inv(proj_point[2]))
@@ -131,9 +134,9 @@ def test_g2_group_order():
 
 def g1_tests():
     print("testing g1 mul")
-    test_g1_1()
+    #test_g1_1()
     #test_g1_3()
-    #test_g1_subgroup_order()
+    test_g1_subgroup_order()
 
 def pad_invmod_input(val):
     hex_val = hex(val)[2:]
