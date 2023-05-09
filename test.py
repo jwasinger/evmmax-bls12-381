@@ -64,11 +64,17 @@ def test_g1_ref_properties():
     infinity = G1ProjPoint.infinity_mont()
     point = G1ProjPoint.generator_mont()
 
-    # P + infinity == P
+    # G + infinity == G
     assert point.add(infinity).to_affine().eq(point.to_affine())
 
-    # P + P == P * 2
+    # G + G == G * 2
     assert point.add(point).to_affine().eq(point.mul(2).to_affine())
+
+    # infinity + infinity == infinity
+    assert infinity.add(infinity).to_affine().eq(infinity.to_affine())
+
+    # G * group_order == infinity
+    assert point.mul(SUBGROUP_ORDER).to_affine().eq(infinity.to_affine())
 
 def test_g1_ecmul_subgroup_order():
     point = G1ProjPoint.generator()
