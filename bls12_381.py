@@ -155,6 +155,56 @@ class G1ProjPoint:
 
         return acc
 
+    def add_complete1(self):
+    	# sec256r1 parameters
+	a = 0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc
+	b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
+
+	b3 = 3 * b
+
+	t0 = self.x * rhs.x
+	t1 = self.y * rhs.y
+	t2 = self.z * rhs.z
+	t3 = self.x + self.y
+	t4 = rhs.x + rhs.y
+	t3 = t3 * t4
+	t4 = t0 + t1
+	t3 = t3 - t4
+	t4 = self.x + self.z
+	t5 = rhs.x + rhs.z
+	t4 = t4 * t5
+	t5 = t0 + t2
+	t4 = t4 - t5
+	t5 = self.y + self.z
+	x3 = rhs.y + rhs.z
+	t5 = t5 * x3
+	x3 = t1 + t2
+	t5 = t5 - x3
+	z3 = a * t4
+	x3 = b3 * t2
+	z3 = x3 + z3
+	x3 = t1 - x3
+	z3 = t1 + z3
+	y3 = x3 * z3
+	t1 = t0 + t0
+	t1 = t1 + t0
+	t2 = a * t2
+	t4 = b3 * t4
+	t1 = t1 + t2
+	t2 = t0 - t2
+	t2 = a * t2
+	t4 = t4 + t2
+	t0 = t1 * t4
+	y3 = y3 + t0
+	t0 = t5 * t4
+	x3 = t3 * x3
+	x3 = x3 - t0
+	t3 = t3 * t1
+	z3 = t5 * z3
+	z3 = z3 + t0
+
+	return G1ProjPoint(x3, y3, z3)
+
     def is_on_curve(self):
         # TODO: return Y^2 Z = X^3 + b Z^3
         pass
