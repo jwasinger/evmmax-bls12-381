@@ -70,6 +70,13 @@ def test_g1_ref_properties():
     # G + G == G * 2
     # assert point.add_complete1(point).to_affine().eq(point.mul(2).to_affine())
 
+    # (A + A + A + A) + ((A + A) + (A + A))
+    obj_1 = point.add_complete1(point.add_complete1(point.add_complete1(point.add_complete1(point))))
+    obj_2 = point.add_complete1(point)
+    import pdb; pdb.set_trace()
+    obj_2 = obj_2.add_complete1(obj_2)
+    assert obj_1.to_affine().eq(obj_2.to_affine())
+
     # infinity + infinity == infinity
     #assert infinity.add(infinity).to_affine().eq(infinity.to_affine())
 
