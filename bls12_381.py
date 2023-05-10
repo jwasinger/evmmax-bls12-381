@@ -160,7 +160,8 @@ class G1ProjPoint:
         a = 0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc
         b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
 
-        b3 = to_mont(3 * b)
+        b3 = fq_mul(to_mont(3), to_mont(b))
+        a = to_mont(a)
 
         t0 = fq_mul(self.x, rhs.x)
         t1 = fq_mul(self.y, rhs.y)
