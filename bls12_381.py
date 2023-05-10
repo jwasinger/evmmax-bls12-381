@@ -1,5 +1,5 @@
-SUBGROUP_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-fq_mod =         21888242871839275222246405745257275088696311157297823662689037894645226208583
+SUBGROUP_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+fq_mod =         0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
 r = 1 << 256 
 mod_inv = pow(r, -1, fq_mod)
 r_squared = (r ** 2) % fq_mod
@@ -51,8 +51,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator_mont():
-        g1_gen_x = 1
-        g1_gen_y = 2 
+        g1_gen_x = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
+        g1_gen_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(to_mont(g1_gen_x), to_mont(g1_gen_y), to_mont(g1_gen_z))
 
@@ -155,55 +155,55 @@ class G1ProjPoint:
 
         return acc
 
-    def add_complete1(self):
-    	# sec256r1 parameters
-	a = 0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc
-	b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
+    def add_complete1(self, rhs):
+        # sec256r1 parameters
+        a = 0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc
+        b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
 
-	b3 = 3 * b
+        b3 = to_mont(3 * b)
 
-	t0 = self.x * rhs.x
-	t1 = self.y * rhs.y
-	t2 = self.z * rhs.z
-	t3 = self.x + self.y
-	t4 = rhs.x + rhs.y
-	t3 = t3 * t4
-	t4 = t0 + t1
-	t3 = t3 - t4
-	t4 = self.x + self.z
-	t5 = rhs.x + rhs.z
-	t4 = t4 * t5
-	t5 = t0 + t2
-	t4 = t4 - t5
-	t5 = self.y + self.z
-	x3 = rhs.y + rhs.z
-	t5 = t5 * x3
-	x3 = t1 + t2
-	t5 = t5 - x3
-	z3 = a * t4
-	x3 = b3 * t2
-	z3 = x3 + z3
-	x3 = t1 - x3
-	z3 = t1 + z3
-	y3 = x3 * z3
-	t1 = t0 + t0
-	t1 = t1 + t0
-	t2 = a * t2
-	t4 = b3 * t4
-	t1 = t1 + t2
-	t2 = t0 - t2
-	t2 = a * t2
-	t4 = t4 + t2
-	t0 = t1 * t4
-	y3 = y3 + t0
-	t0 = t5 * t4
-	x3 = t3 * x3
-	x3 = x3 - t0
-	t3 = t3 * t1
-	z3 = t5 * z3
-	z3 = z3 + t0
+        t0 = fq_mul(self.x, rhs.x)
+        t1 = fq_mul(self.y, rhs.y)
+        t2 = fq_mul(self.z, rhs.z)
+        t3 = fq_add(self.x, self.y)
+        t4 = fq_add(rhs.x, rhs.y)
+        t3 = fq_mul(t3, t4)
+        t4 = fq_add(t0, t1)
+        t3 = fq_sub(t3, t4)
+        t4 = fq_add(self.x, self.z)
+        t5 = fq_add(rhs.x, rhs.z)
+        t4 = fq_mul(t4, t5)
+        t5 = fq_add(t0, t2)
+        t4 = fq_sub(t4, t5)
+        t5 = fq_add(self.y, self.z)
+        x3 = fq_add(rhs.y, rhs.z)
+        t5 = fq_mul(t5, x3)
+        x3 = fq_add(t1, t2)
+        t5 = fq_sub(t5, x3)
+        z3 = fq_mul(a, t4)
+        x3 = fq_mul(b3, t2)
+        z3 = fq_add(x3, z3)
+        x3 = fq_sub(t1, x3)
+        z3 = fq_add(t1, z3)
+        y3 = fq_mul(x3, z3)
+        t1 = fq_add(t0, t0)
+        t1 = fq_add(t1, t0)
+        t2 = fq_mul(a, t2)
+        t4 = fq_mul(b3, t4)
+        t1 = fq_add(t1, t2)
+        t2 = fq_sub(t0, t2)
+        t2 = fq_mul(a, t2)
+        t4 = fq_add(t4, t2)
+        t0 = fq_mul(t1, t4)
+        y3 = fq_add(y3, t0)
+        t0 = fq_mul(t5, t4)
+        x3 = fq_mul(t3, x3)
+        x3 = fq_sub(x3, t0)
+        t3 = fq_mul(t3, t1)
+        z3 = fq_mul(t5, z3)
+        z3 = fq_add(z3, t0)
 
-	return G1ProjPoint(x3, y3, z3)
+        return G1ProjPoint(x3, y3, z3)
 
     def is_on_curve(self):
         # TODO: return Y^2 Z = X^3 + b Z^3
