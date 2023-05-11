@@ -73,6 +73,7 @@ def test_g1_ref_properties():
     # infinity + infinity == infinity
     assert infinity.add(infinity).to_affine().eq(infinity.to_affine())
 
+    import pdb; pdb.set_trace()
     # G * group_order == infinity
     assert point.mul(SUBGROUP_ORDER).to_affine().eq(infinity.to_affine())
 

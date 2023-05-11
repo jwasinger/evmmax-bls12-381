@@ -1,5 +1,5 @@
-SUBGROUP_ORDER = 21888242871839275222246405745257275088548364400416034343698204186575808495617
-fq_mod =         21888242871839275222246405745257275088696311157297823662689037894645226208583
+SUBGROUP_ORDER = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
+fq_mod =         0x2523648240000001ba344d80000000086121000000000013a700000000000013
 r = 1 << 256 
 mod_inv = pow(r, -1, fq_mod)
 r_squared = (r ** 2) % fq_mod
@@ -40,7 +40,7 @@ class G1AffinePoint:
         return self.x == other.x and self.y == other.y
 
 def mul_by_3b(val):
-    val_12 = to_mont(9)
+    val_12 = to_mont(6)
     return fq_mul(val, val_12)
 
 class G1ProjPoint:
@@ -51,8 +51,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator_mont():
-        g1_gen_x = 1
-        g1_gen_y = 2 
+        g1_gen_x = 0X2523648240000001ba344d80000000086121000000000013a700000000000012
+        g1_gen_y = 1
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(to_mont(g1_gen_x), to_mont(g1_gen_y), to_mont(g1_gen_z))
 
