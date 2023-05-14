@@ -19,7 +19,7 @@ def wrap_emit(template_state, fn):
     return wrapped
 
 class TemplateState:
-    def __init__(self, g2=False):
+    def __init__(self, g2=False, slot_offset=0, mem_offset=0):
         if g2:
             self.item_size = 2
         else:
@@ -34,10 +34,10 @@ class TemplateState:
 
         self.outputs = {}
 
-        self.free_slot = 0
+        self.free_slot = slot_offset
         self.evmmax_slot_size = 48 # hardcode to bls for now
         self.allocs = {}
-        self.mem_allocs = {}
+        self.mem_allocs = mem_offset
         self.free_mem = 0
         self.indent_lvl = 0
         self.indent_size = 4
@@ -79,11 +79,21 @@ class TemplateState:
         }
 
     def load_module(self, module_name, inputs, outputs):
-        # TODO: modules must be loaded after current module's inputs/outputs are declared
+        # TODO: assert -> modules must be loaded after current module's inputs/outputs are declared
         # TODO make sure that module alloc-space starts at an offset based on the last free slot
-        submodule = TemplateState(g2=self.g2)
+        # TODO: map submodule inputs/outputs to current module scope
+        submodule = TemplateState(g2=self.g2, slot_offset=self.free_slot, mem_offset=self.free_mem)
+        env = NativeEnvironment()
 
-        # TODO read/load submodule
+        template_content = ""
+        with open(os.path.join(os.getcwd(), "templates/modules/{}/module.huff".format(module_name))) as f:
+            template_content = f.read()
+
+        t = env.from_string(template_content)
+        t.globals.update(template_state.get_stdlib())
+        result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits)
+
+        # TODO: do something with result
         pass
 
     def get_outputs_start_idx(self):
