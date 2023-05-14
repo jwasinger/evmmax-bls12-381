@@ -262,8 +262,10 @@ def g2_gen_affine():
 def test_bls12381_alg1():
     a = 0
     b3 = to_mont(12)
-    # p1 = G1ProjPoint(12128760393459711179465713322815656076014961183094916769580050568633225497805, 12128760393459711179465713322815656076014961183094916769580050568633225497805,4669348337556121105475090819416077833874225938344153079353664857439528366918)  
+    # p1 is generator * (SUBGROUP_ORDER - 1)
+    p1 = G1ProjPoint(12128760393459711179465713322815656076014961183094916769580050568633225497805, 12128760393459711179465713322815656076014961183094916769580050568633225497805,4669348337556121105475090819416077833874225938344153079353664857439528366918)  
     p2 = G1ProjPoint.generator_mont()
+
     # x_3 = (x_1 * y_2 + x_2 * y_1) * (y1 * y2 - a * (x1 * z2 + x2 * z1) - 3 * b * z1 * z2) - (y1 * z2 + y2 * z1) * (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
     # compute (x_1 * y_2 + x_2 * y_1) 
     t1 = fq_add(fq_mul(p1.x, p2.y), fq_mul(p2.x, p1.y))
@@ -274,10 +276,10 @@ def test_bls12381_alg1():
     # compute (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
     t4 = fq_sub(fq_add(fq_mul(a, fq_mul(p1.x, p2.x)), fq_mul(b3, fq_add(fq_mul(p1.x, p2.z), fq_mul(p2.x, p1.z)))), fq_mul(fq_mul(a, a), fq_mul(p1.z, p2.z)))
 
-    import pdb; pdb.set_trace()
     
     # compute final value
     output_x = fq_sub(fq_mul(t1, t2), fq_mul(t3, t4))
+    import pdb; pdb.set_trace()
 
 def run_tests():
     # test g1_gen + inf == g1_gen
