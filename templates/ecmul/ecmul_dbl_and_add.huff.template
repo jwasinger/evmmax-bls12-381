@@ -1,16 +1,19 @@
 {{ alloc_input_val('ONE_VAL') -}}
 
 // TODO rename this as it doesn't have to be the generator point
-{{ alloc_input_f('G1_GEN_X') -}}
-{{ alloc_input_f('G1_GEN_Y') -}}
-{{ alloc_input_f('G1_GEN_Z') -}}
+{{ alloc_module_input_f('G1_GEN_X') -}}
+{{ alloc_module_input_f('G1_GEN_Y') -}}
+{{ alloc_module_input_f('G1_GEN_Z') -}}
 
+{{ alloc_module_output_f('OUTPUT_X') -}}
+{{ alloc_module_output_f('OUTPUT_Y') -}}
+{{ alloc_module_output_f('OUTPUT_Z') -}}
+
+{{ include_module('modinv', inputs=['MODINV_INPUT'], outputs=['MODINV_OUTPUT']) -}}
+
+// TODO: rename these to VAL_3B (12 is specific to bls12381)
 {{ alloc_input_val('VAL_12') -}}
 {{ alloc_input_val('VAL_12_1') -}}
-
-{{ alloc_output_f('OUTPUT_X') -}}
-{{ alloc_output_f('OUTPUT_Y') -}}
-{{ alloc_output_f('OUTPUT_Z') -}}
 
 {{ alloc_output_val('SCRATCH') -}}
 
@@ -184,6 +187,16 @@ end1:
     {{ emit_f_copy('OUTPUT_Y', 'OUTPUT_TEMP_Y') -}}
     {{ emit_f_copy('OUTPUT_Z', 'OUTPUT_TEMP_Z') -}}
 {{ end_block() -}}
+}
+
+// convert OUTPUT_* from projective to affine coordinates
+#define macro CONVERT_TO_AFFINE() = takes(0) returns(0) {
+    {{ emit_f_copy('MODINV_INPUT', 'OUTPUT_Z') -}}
+    {{ invoke_module('modinv') -}}
+    {{ emit_f_mul('OUTPUT_X', 'MODINV_OUTPUT', 'OUTPUT_X') -}}
+    {{ emit_f_mul('OUTPUT_Y', 'MODINV_OUTPUT', 'OUTPUT_Y') -}}
+    // the below step should just be setting 'OUTPUT_Z' to 1 (z * z**-1 == 1)
+    {{ emit_f_mul('OUTPUT_Z', 'MODINV_OUTPUT', 'OUTPUT_Z') -}}
 }
 
 #define macro MAIN() = takes(0) returns(0) {

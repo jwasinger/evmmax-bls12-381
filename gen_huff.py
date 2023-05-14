@@ -78,6 +78,14 @@ class TemplateState:
             'emit_slot': wrap_emit(self, self.emit_slot)
         }
 
+    def load_module(self, module_name, inputs, outputs):
+        # TODO: modules must be loaded after current module's inputs/outputs are declared
+        # TODO make sure that module alloc-space starts at an offset based on the last free slot
+        submodule = TemplateState(g2=self.g2)
+
+        # TODO read/load submodule
+        pass
+
     def get_outputs_start_idx(self):
         return min([idx for _, idx in self.outputs.items()])
 
