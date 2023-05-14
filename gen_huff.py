@@ -82,6 +82,7 @@ class TemplateState:
         # TODO: assert -> modules must be loaded after current module's inputs/outputs are declared
         # TODO make sure that module alloc-space starts at an offset based on the last free slot
         # TODO: map submodule inputs/outputs to current module scope
+        # TODO: mangle symbol names in loaded submodule so that they don't clash with symbols from other modules
         submodule = TemplateState(g2=self.g2, slot_offset=self.free_slot, mem_offset=self.free_mem)
         env = NativeEnvironment()
 
