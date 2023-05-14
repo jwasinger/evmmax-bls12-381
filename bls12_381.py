@@ -26,9 +26,8 @@ def fq_sqr(x) -> int:
     return mulmont(x, x)
 
 def fq_inv(x) -> int:
-    # TODO implement this using fermat's little theorem with the generated addchain
     x_norm = to_norm(x)
-    res = pow(x, -1, fq_mod)
+    res = pow(x_norm, -1, fq_mod)
     return to_mont(res)
 
 class G1AffinePoint:
@@ -66,6 +65,12 @@ class G1ProjPoint:
         g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, g1_gen_z)
 
         return g1_gen_point
+
+    def is_on_curve(self):
+        # TODO don't convert to affine
+        affine_pt = self.to_affine()
+        res = fq_mul(affine_pt.y, affine_pt.y) == fq_add(fq_mul(fq_mul(affine_pt.x, affine_pt.x), affine_pt.x), to_mont(2))
+        return res
 
     def infinity():
         return G1ProjPoint(0, 1, 0)
@@ -155,9 +160,9 @@ class G1ProjPoint:
 
         return acc
 
-    def is_on_curve(self):
+    #def is_on_curve(self):
         # TODO: return Y^2 Z = X^3 + b Z^3
-        pass
+        #pass
 
     def is_inf(self):
         if self.x == 0 and self.y != 0 and self.z == 0:
@@ -254,10 +259,30 @@ def g2_gen():
 def g2_gen_affine():
     return g2_gen_point_affine
 
+def test_bls12381_alg1():
+    a = 0
+    b3 = to_mont(12)
+    # p1 = G1ProjPoint(12128760393459711179465713322815656076014961183094916769580050568633225497805, 12128760393459711179465713322815656076014961183094916769580050568633225497805,4669348337556121105475090819416077833874225938344153079353664857439528366918)  
+    p2 = G1ProjPoint.generator_mont()
+    # x_3 = (x_1 * y_2 + x_2 * y_1) * (y1 * y2 - a * (x1 * z2 + x2 * z1) - 3 * b * z1 * z2) - (y1 * z2 + y2 * z1) * (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
+    # compute (x_1 * y_2 + x_2 * y_1) 
+    t1 = fq_add(fq_mul(p1.x, p2.y), fq_mul(p2.x, p1.y))
+    # compute (y1 * y2 - a * (x1 * z2 + x2 * z1) - 3 * b * z1 * z2)
+    t2 = fq_sub(fq_sub(fq_mul(p1.y, p2.y), fq_mul(a, fq_add(fq_mul(p1.x, p2.z), fq_mul(p2.x, p1.z)))), fq_mul(b3, fq_mul(p1.z, p2.z)))
+    # compute (y1 * z2 + y2 * z1)
+    t3 = fq_add(fq_mul(p1.y, p2.z), fq_mul(p2.y, p1.z))
+    # compute (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
+    t4 = fq_sub(fq_add(fq_mul(a, fq_mul(p1.x, p2.x)), fq_mul(b3, fq_add(fq_mul(p1.x, p2.z), fq_mul(p2.x, p1.z)))), fq_mul(fq_mul(a, a), fq_mul(p1.z, p2.z)))
+
+    import pdb; pdb.set_trace()
+    
+    # compute final value
+    output_x = fq_sub(fq_mul(t1, t2), fq_mul(t3, t4))
+
 def run_tests():
     # test g1_gen + inf == g1_gen
     # test double(g1_gen) is on curve
-    pass
+    test_bls12381_alg1()
 
 if __name__ == "__main__":
     run_tests()

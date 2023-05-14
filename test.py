@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G1ProjPoint, G2ProjPoint, G2AffinePoint, g2_gen_affine
+from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_add, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G1ProjPoint, G2ProjPoint, G2AffinePoint, g2_gen_affine
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:
@@ -64,6 +64,8 @@ def test_g1_ref_properties():
     infinity = G1ProjPoint.infinity_mont()
     point = G1ProjPoint.generator_mont()
 
+    assert point.is_on_curve()
+
     # G + infinity == G
     assert point.add(infinity).to_affine().eq(point.to_affine())
 
@@ -73,9 +75,9 @@ def test_g1_ref_properties():
     # infinity + infinity == infinity
     assert infinity.add(infinity).to_affine().eq(infinity.to_affine())
 
-    import pdb; pdb.set_trace()
     # G * group_order == infinity
     assert point.mul(SUBGROUP_ORDER).to_affine().eq(infinity.to_affine())
+    import pdb; pdb.set_trace()
 
 def test_g1_ecmul_subgroup_order():
     point = G1ProjPoint.generator()
