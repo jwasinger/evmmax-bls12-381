@@ -1,5 +1,5 @@
-SUBGROUP_ORDER = 0x2523648240000001ba344d8000000007ff9f800000000010a10000000000000d
-fq_mod =         0x2523648240000001ba344d80000000086121000000000013a700000000000013
+SUBGROUP_ORDER = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
+fq_mod =         0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
 r = 1 << 256 
 mod_inv = pow(r, -1, fq_mod)
 r_squared = (r ** 2) % fq_mod
@@ -50,8 +50,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator_mont():
-        g1_gen_x = 0X2523648240000001ba344d80000000086121000000000013a700000000000012
-        g1_gen_y = 1
+        g1_gen_x = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
+        g1_gen_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(to_mont(g1_gen_x), to_mont(g1_gen_y), to_mont(g1_gen_z))
 
@@ -59,8 +59,8 @@ class G1ProjPoint:
 
     @staticmethod
     def generator():
-        g1_gen_x = 1
-        g1_gen_y = 2
+        g1_gen_x = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
+        g1_gen_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
         g1_gen_z = 1
         g1_gen_point = G1ProjPoint(g1_gen_x, g1_gen_y, g1_gen_z)
 
@@ -260,10 +260,10 @@ def g2_gen_affine():
     return g2_gen_point_affine
 
 def test_bls12381_alg1():
-    a = 0
-    b3 = to_mont(12)
+    a = to_mont(0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc)
+    b3 = to_mont(3 * 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b)
     # p1 is generator * (SUBGROUP_ORDER - 1)
-    p1 = G1ProjPoint(12128760393459711179465713322815656076014961183094916769580050568633225497805, 12128760393459711179465713322815656076014961183094916769580050568633225497805,4669348337556121105475090819416077833874225938344153079353664857439528366918)  
+    p1 = G1ProjPoint(to_mont(48439561293906451759052585252797914202762949526041747995844080717082404635286), to_mont(79657838253606452964112319029819691573475036742305299123656433055298683448842), to_mont(1))  
     p2 = G1ProjPoint.generator_mont()
 
     # x_3 = (x_1 * y_2 + x_2 * y_1) * (y1 * y2 - a * (x1 * z2 + x2 * z1) - 3 * b * z1 * z2) - (y1 * z2 + y2 * z1) * (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
@@ -276,9 +276,19 @@ def test_bls12381_alg1():
     # compute (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2)
     t4 = fq_sub(fq_add(fq_mul(a, fq_mul(p1.x, p2.x)), fq_mul(b3, fq_add(fq_mul(p1.x, p2.z), fq_mul(p2.x, p1.z)))), fq_mul(fq_mul(a, a), fq_mul(p1.z, p2.z)))
 
+    # y_3 = (3 * x1 * x2 + a * z1 * z2) * (a * x1 * x2 + 3 * b * (x1 * z2 + x2 * z1) - a * a * z1 * z2) + (y1 * y2 + a * (x1 * z2 + x2 * z1) + 3 * b * z1 * z2)
+    t1 = fq_add(fq_mul(fq_mul(to_mont(3), point1.x), point2.x), fq_mul(fq_mul(a, point1.z), point2.z)
+    t2 = fq_add(fq_mul(fq_mul(a, poin1.x), point2.x), fq_mul(fq_mul(fq_add(fq_mul(point1.x, point2.z), fq_mul(point2.x, point1.z)), b), to_mont(3)))
+    t3 = fq_add(fq_add(fq_mul(point1.y, point2.y), fq_mul(fq_mul(fq_add(point1.x, point2.z), fq_mul(point2.x, point1.z))
+    output_y = fq
+
     
     # compute final value
     output_x = fq_sub(fq_mul(t1, t2), fq_mul(t3, t4))
+    output_y = 1
+    output_z = 0
+
+    assert output_x == 0 and output_y != 0 and output_z == 0
     import pdb; pdb.set_trace()
 
 def run_tests():
