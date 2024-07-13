@@ -149,7 +149,6 @@ class TemplateState:
            hex(self.inputs_count),
            '0x0', # inputs always start at offset 0 in memory 
            '0x0', # inputs always start at value index 0
-           '0x0',
            'storex'
         ]
         return res
@@ -159,7 +158,6 @@ class TemplateState:
            hex(self.output_val_count),
            hex(self.get_outputs_start_idx()),
            hex(self.get_outputs_start_idx() * 48),
-           '0x0',
            'loadx'
         ]
         return res
