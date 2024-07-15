@@ -14,7 +14,6 @@ __addmodx(s9,s38,s38)
     0x7
     0x9
     0x1b0
-    0x0
     loadx
     }
 
@@ -380,7 +379,6 @@ __addmodx(s14,s38,s38)
     0x10
     mstore
     0x9
-    0x0
     0x0
     0x0
     storex
@@ -10862,7 +10860,6 @@ end:
     0x7
     0x9
     0x1b0
-    0x0
     loadx
     InfCheck()
 

@@ -129,8 +129,8 @@ def test_g2_group_order():
 def g1_tests():
     print("testing g1 mul")
     test_g1_1()
-    test_g1_3()
-    test_g1_subgroup_order()
+    #test_g1_3()
+    #test_g1_subgroup_order()
 
 def pad_invmod_input(val):
     hex_val = hex(val)[2:]
@@ -152,11 +152,11 @@ def test_invmod():
     assert output * 20001 % fq_mod == 1
 
 def main():
-    #g1_tests()
+    g1_tests()
     print("testing g2 mul")
-    #test_g2_1()
-    #test_g2_2()
-    #test_g2_group_order()
+    test_g2_1()
+    test_g2_2()
+    test_g2_group_order()
     print("testing bls12381 fq invmod")
     test_invmod()
 
