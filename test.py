@@ -25,7 +25,7 @@ def encode_g2mul_input(scalar, point):
         pad_input(point.z0) + \
         pad_input(point.z1)
 
-def bench_geth(inp: str, code_file: str):
+def bench_geth(inp: str, code_file: str, bench_name: str):
     geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
     code_dir_base_path = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,7 +35,6 @@ def bench_geth(inp: str, code_file: str):
     code_file_path = os.path.join(code_dir_base_path, code_file)
     geth_exec = os.path.join(geth_path)
     geth_cmd = "{} --codefile {} --bench --input {} run".format(geth_path, code_file_path, inp)
-    print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise Exception("geth exec error: {}".format(result.stderr))
@@ -52,14 +51,19 @@ def bench_geth(inp: str, code_file: str):
         exec_time = int(float(exec_time[:-1]) * 1000000 * 1000)
     else:
         raise Exception("unknown timestamp ending: {}".format(exec_time))
-    import pdb; pdb.set_trace()
+
+    preset = ""
+    if os.getenv("PRESET") != None:
+        preset = os.getenv("PRESET")
+    print("{}, {}, {}".format(preset, bench_name, exec_time))
+
     return output
 
-def run_geth_g1(inp):
-    return bench_geth(inp, "build/artifacts/ecmul/g1mul_dbl_and_add.hex")
+def run_geth_g1(inp, bench_name: str):
+    return bench_geth(inp, "build/artifacts/ecmul/g1mul_dbl_and_add.hex", bench_name)
 
-def run_geth_g2(inp):
-    return bench_geth(inp, "build/artifacts/ecmul/g2mul_dbl_and_add.hex")
+def run_geth_g2(inp: str, bench_name: str):
+    return bench_geth(inp, "build/artifacts/ecmul/g2mul_dbl_and_add.hex", bench_name)
 
 def parse_geth_output_g2(output):
     if len(output) == 96 * 2 * 2:
@@ -82,7 +86,7 @@ def test_g1_subgroup_order():
     point = g1_gen()
     scalar = SUBGROUP_ORDER
     inp = encode_g1mul_input(scalar, point)
-    res = run_geth_g1(inp)
+    res = run_geth_g1(inp, "g1mulgenorder")
 
     assert res == '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
@@ -90,7 +94,7 @@ def test_g1_3():
     point = g1_gen()
     scalar = 3
     inp = encode_g1mul_input(scalar, point)
-    res = run_geth_g1(inp)
+    res = run_geth_g1(inp, "g1mulgen3")
 
     assert res == '189d03e87d85fb514b3bce52c4599d063f4aeb6c3adba3777e785041eeb7fc30bfd645406265b582ed1df433b431cdb1042876dbdf4e0654cb87d595e12e84907c42dcaa610db318a1e1e7c07296be3c1075cc05603e36d0f5f1b8c61ae560c309fab0f8549cb0ebf102a3bc28f8945f42357940b6929e1addecc2de2693822375ff704ba7f9a60bc64dc2258a62ee31'
 
@@ -98,7 +102,7 @@ def test_g1_1():
     point = g1_gen()
     scalar = 1
     inp = encode_g1mul_input(scalar, point)
-    output = run_geth_g1(inp)
+    output = run_geth_g1(inp, "g1mulgen1")
 
     proj_point = (int(output[0:96], 16), int(output[96:192], 16), int(output[192:], 16))
     z_inv = to_mont(fq_inv(proj_point[2]))
@@ -119,7 +123,7 @@ def test_g2_1():
     scalar = 1
     inp = encode_g2mul_input(scalar, inp_point)
 
-    output = run_geth_g2(inp)
+    output = run_geth_g2(inp, "g2mulgen1")
     point = parse_geth_output_g2(output)
     assert point.to_affine().eq(g2_gen_affine())
 
@@ -129,7 +133,7 @@ def test_g2_2():
     scalar = 2
     inp = encode_g2mul_input(scalar, inp_point)
 
-    output = run_geth_g2(inp)
+    output = run_geth_g2(inp, "g2mulgen2")
     point = parse_geth_output_g2(output)
     # TODO provide a reference implementation and don't hardcode this?
     expected = G2ProjPoint(to_mont(0x0bb3e1c3796e71ebe516f4449d39c68ee572aef100fceedf48c5bc825364bb5ccc83c2a8f458bb024402ffab3f50c7d1), to_mont(0x05285ede7fa45e34d4fa92a06282ea7846bb859c7154d3fa68ccffb64661256a634ef54bd599d1c93ffa41dba63af93f), to_mont(0x015016be80bc15f6c34b030c6b68d7a8f77c3b3186b5a362cf69317130afee1f17a26a5082820c76856385b4818fb7bb), to_mont(0x01dbb9f9288d0c2d4c5e0be34666e31addcaffc8c44a05e5642b0fce99636d0d43163afd50796c522b0ad1b671abc329), to_mont(0x18d6bf1cada2e598b89b0c67738ead2c050de4d1153adc11d57b1f4086565efc585924ad71875924ac932fcc5c866239), to_mont(0x12cf8d88349a270cd34d0ad92b789a8f1d10eb3c8afe4aecd963432b75ad1925c394df3c9f246203d464134ca6f6ccb5))
@@ -140,11 +144,10 @@ def test_g2_group_order():
     scalar = SUBGROUP_ORDER
     inp = encode_g2mul_input(scalar, inp_point)
 
-    output = run_geth_g2(inp)
+    output = run_geth_g2(inp, "g2mulgenorder")
     assert output == '000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
 def g1_tests():
-    print("testing g1 mul")
     test_g1_1()
     test_g1_3()
     test_g1_subgroup_order()
@@ -170,7 +173,6 @@ def test_invmod():
 
 def main():
     g1_tests()
-    print("testing g2 mul")
     test_g2_1()
     test_g2_2()
     test_g2_group_order()
