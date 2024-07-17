@@ -27,15 +27,32 @@ def encode_g2mul_input(scalar, point):
 
 def bench_geth(inp: str, code_file: str):
     geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
+    code_dir_base_path = os.path.dirname(os.path.abspath(__file__))
 
+    if os.getenv('GETH_EVM') != None:
+        geth_path = os.getenv('GETH_EVM')
+
+    code_file_path = os.path.join(code_dir_base_path, code_file)
     geth_exec = os.path.join(geth_path)
-    geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
+    geth_cmd = "{} --codefile {} --bench --input {} run".format(geth_path, code_file_path, inp)
     print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
         raise Exception("geth exec error: {}".format(result.stderr))
 
     output = result.stdout.decode('utf-8')[2:-1]
+
+    exec_time = str(result.stderr).split('\\n')[1].strip('execution time:  ')
+
+    if exec_time.endswith("ms"):
+        exec_time = int(float(exec_time[:-2]) * 1000000)
+    elif exec_time.endswith("\\xc2\\xb5s"):
+        exec_time = int(float(exec_time[:-9]) * 1000)
+    elif exec_time.endswith("s"):
+        exec_time = int(float(exec_time[:-1]) * 1000000 * 1000)
+    else:
+        raise Exception("unknown timestamp ending: {}".format(exec_time))
+    import pdb; pdb.set_trace()
     return output
 
 def run_geth_g1(inp):
@@ -152,13 +169,14 @@ def test_invmod():
     assert output * 20001 % fq_mod == 1
 
 def main():
-    #g1_tests()
+    g1_tests()
     print("testing g2 mul")
-    #test_g2_1()
-    #test_g2_2()
-    #test_g2_group_order()
-    print("testing bls12381 fq invmod")
-    test_invmod()
+    test_g2_1()
+    test_g2_2()
+    test_g2_group_order()
+    # TODO: re-enable
+    #print("testing bls12381 fq invmod")
+    #test_invmod()
 
 if __name__ == "__main__":
     main()
