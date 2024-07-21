@@ -52,10 +52,13 @@ def bench_geth(inp: str, code_file: str, bench_name: str):
     else:
         raise Exception("unknown timestamp ending: {}".format(exec_time))
 
+    # terrible hard-coded hack
+    gas_used = int(result.stderr.decode('utf-8').split('\n')[0][17:])
+
     preset = ""
     if os.getenv("PRESET") != None:
         preset = os.getenv("PRESET")
-    print("{}, {}, {}".format(preset, bench_name, exec_time))
+    print("{},{},{},{}".format(preset, bench_name, exec_time, gas_used))
 
     return output
 
