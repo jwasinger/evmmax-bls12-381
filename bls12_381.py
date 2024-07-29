@@ -1,3 +1,5 @@
+import copy
+
 SUBGROUP_ORDER = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
 fq_mod = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
 r = 1 << 384
@@ -77,6 +79,9 @@ def fq2_mul(x, y) -> (int, int):
     )
     return res
 
+def fq2_mul_by_fq(x, fq_elem):
+    return fq_mul(x[0], fq_elem), fq_mul(x[1], fq_elem)
+
 def fq2_inv(x) -> (int, int):
     t0 = fq_sqr(x[0])
     t1 = fq_sqr(x[1])
@@ -96,33 +101,87 @@ def fq2_add(x, y) -> (int, int):
         fq_add(x[1], y[1]))
     return res
 
+def fq2_sub(x, y) -> (int, int):
+    res = (
+        fq_sub(x[0], y[0]),
+        fq_sub(x[1], y[1]))
+    return res
+
+def fq2_mul_by_3b(x):
+    # TODO: double-check
+    return fq2_mul(x, (to_mont(12), to_mont(12)))
+
 class G2AffinePoint:
     def __init__(self, x0, x1, y0, y1):
-        self.x0 = x0
-        self.x1 = x1
-        self.y0 = y0
-        self.y1 = y1
+        self.x = (x0, x1)
+        self.y = (y0, y1)
 
     def eq(self, other) -> bool:
-        return self.x0 == other.x0 and self.x1 == other.x1 and self.y0 == other.y0 and self.y1 == other.y1
+        return self.x[0] == other.x[0] and self.x[1] == other.x[1] and self.y[0] == other.y[0] and self.y[1] == other.y[1]
 
 class G2ProjPoint:
     def __init__(self, x0, x1, y0, y1, z0, z1):
-        self.x0 = x0
-        self.x1 = x1
-        self.y0 = y0
-        self.y1 = y1
-        self.z0 = z0
-        self.z1 = z1
+        self.x = (x0, x1)
+        self.y = (y0, y1)
+        self.z = (z0, z1)
+
+    def clone(self):
+        return copy.deepcopy(self)
 
     def to_affine(self):
         # TODO: add back in
         #if self.is_inf():
         #    return AffinePoint(0, 0)
-        z_inv = fq2_inv((self.z0, self.z1))
-        x = fq2_mul((self.x0, self.x1), z_inv)
-        y = fq2_mul((self.y0, self.y1), z_inv)
+        z_inv = fq2_inv((self.z[0], self.z[1]))
+        x = fq2_mul((self.x[0], self.x[1]), z_inv)
+        y = fq2_mul((self.y[0], self.y[1]), z_inv)
         return G2AffinePoint(x[0], x[1], y[0], y[1])
+
+
+    def add(self, rhs):
+        return point_add(self, rhs, fq2_mul, fq2_add, fq2_sub, fq2_mul_by_3b)
+
+    def double(self):
+        return self
+
+def point_add(self, rhs, f_mul, f_add, f_sub, mul_by_3b):
+        # Algorithm 7, https://eprint.iacr.org/2015/1060.pdf
+
+        t0 = f_mul(self.x, rhs.x)
+        t1 = f_mul(self.y, rhs.y)
+        t2 = f_mul(self.z, rhs.z)
+        t3 = f_add(self.x, self.y)
+        t4 = f_add(rhs.x, rhs.y)
+        t3 = f_mul(t3, t4)
+        t4 = f_add(t0, t1)
+        t3 = f_sub(t3, t4)
+        t4 = f_add(self.y, self.z)
+        x3 = f_add(rhs.y, rhs.z)
+        t4 = f_mul(t4, x3)
+        x3 = f_add(t1, t2)
+        t4 = f_sub(t4, x3)
+        x3 = f_add(self.x, self.z)
+        y3 = f_add(rhs.x, rhs.z)
+        x3 = f_mul(x3, y3)
+        y3 = f_add(t0, t2)
+        y3 = f_sub(x3, y3)
+        x3 = f_add(t0, t0)
+        t0 = f_add(x3, t0)
+        t2 = mul_by_3b(t2)
+        z3 = f_add(t1, t2)
+        t1 = f_sub(t1, t2)
+        y3 = mul_by_3b(y3)
+        x3 = f_mul(t4, y3)
+        t2 = f_mul(t3, t1)
+        x3 = f_sub(t2, x3)
+        y3 = f_mul(y3, t0)
+        t1 = f_mul(t1, z3)
+        y3 = f_add(t1, y3)
+        t0 = f_mul(t0, t3)
+        z3 = f_mul(z3, t4)
+        z3 = f_add(z3, t0)
+
+        return G2ProjPoint(x3[0], x3[1], y3[0], y3[1], z3[0], z3[1])
 
 def g2_point_from_raw(raw):
     return G2ProjPoint(to_norm(int(raw[0:96], 16)),
@@ -150,7 +209,15 @@ def g1_gen():
     return g1_gen_point
 
 def g2_gen():
-    return g2_gen_point
+    return g2_gen_point.clone()
+
+def g2_gen_mont():
+    res = g2_gen()
+    res.x = (to_mont(res.x[0]),to_mont(res.x[1]))
+    res.y = (to_mont(res.y[0]),to_mont(res.y[1]))
+    res.z = (to_mont(res.z[0]),to_mont(res.z[1]))
+    return res
+
 
 def g2_gen_affine():
     return g2_gen_point_affine
