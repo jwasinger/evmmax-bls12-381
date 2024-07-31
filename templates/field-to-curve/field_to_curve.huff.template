@@ -1,0 +1,104 @@
+{{ alloc_f('TEMP0') -}}
+{{ alloc_f('TEMP1') -}}
+{{ alloc_f('TEMP2') -}}
+{{ alloc_f('TEMP3') -}}
+{{ alloc_f('TEMP4') -}}
+{{ alloc_f('TEMP5') -}}
+{{ alloc_f('TEMP6') -}}
+{{ alloc_f('TEMP7') -}}
+
+#define macro g1SqrtRatio() = takes(0) returns(0) {
+	{{ start_block() -}}
+	// TODO: alias inputs to names Z, U, V
+
+	// TODO: alias tmp TV1, TV2, TV3
+
+	// c = 1000602388805416848354447456433976039139220704984751971333014534031007912622709466110671907282253916009473568139946
+
+	emit_f_sqr(TV1, V)
+	emit_f_mul(TV2, U, V)
+	emit_f_mul(TV1, TV1, TV2)
+
+	// y1 <- tv1  ** c
+	// TODO: move this into python code generator, parameterize exponent (because it is different for G2)
+
+	// low part of c (G1)
+	0xd91dd2e13ce144afd9cc34a83dac3d8907aaffffac54ffffee7fbfffffffeaaa
+	// stack: exponent
+	loop_p1_start:
+		dup1
+		0x1
+		and
+
+		{{ emit_f_sqr(Y1, Y1) -}}
+
+		0x0
+		eq
+		loop_p1_start jumpi
+
+		{{ emit_f_mul(Y1, Y1, TV1) -}}
+
+		dup1
+		shr
+		0x00
+		gt
+		loop_p1_start jump
+	
+	pop
+	// high part of c
+	0x680447a8e5ff9a692c6e9ed90d2eb35
+
+	loop_p2_start:
+		dup1
+		0x1
+		and
+
+		{{ emit_f_sqr(Y1, Y1) -}}
+
+		0x0
+		eq
+		loop_p2_start jumpi
+
+		{{ emit_f_mul(Y1, Y1, TV1) -}}
+
+		dup1
+		shr
+		0x00
+		gt
+		loop_p2_start jump
+
+	pop
+
+	{{ emit_f_mul(Y1, Y1, TV2) -}}
+
+	// TODO: set TV3 to fp.Element{17544630987809824292, 17306709551153317753, 8299808889594647786, 5930295261504720397, 675038575008112577, 167386374569371918}
+
+	{{ emit_f_mul(Y2, Y1, TV3) -}}
+	{{ emit_f_sqr(TV3, V) -}}
+	{{ emit_f_mul(TV3, TV3, V) -}}
+	
+	// TODO: assert isQR = tv3 == u, isQR
+
+	{{ end_block() -}}
+}
+
+#define macro FIELD_TO_CURVE() = takes(0) returns(0) {
+{{ start_block() -}}
+g1SqrtRatio()
+
+{{ end_block() -}}
+}
+
+
+#define macro MAIN() = takes(0) returns(0) {
+{{ start_block() -}}
+    {{ emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) }}
+
+    {{ emit_slots_used() }}
+    0x30
+    {{ emit_mem_offset('MODULUS') -}}
+    0x00
+    setupx
+
+{{ end_block() -}}
+}

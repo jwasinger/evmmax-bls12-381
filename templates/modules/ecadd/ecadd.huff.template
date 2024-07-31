@@ -1,0 +1,44 @@
+// OUTPUT_SLOT <- G1_GEN + OUTPUT_SLOT
+#define macro AddStep() = takes(0) returns(0) {
+{{ start_block() -}}
+    // copy G1_GEN into TEMP_POINT_(x/y/z)
+    {{ emit_f_mul('t0', 'x', 'g1_gen_x') -}}
+    {{ emit_f_mul('t1', 'y', 'g1_gen_y') -}}
+    {{ emit_f_mul('t2', 'z', 'g1_gen_z') -}}
+    {{ emit_f_add('t3', 'x', 'y') -}}
+    {{ emit_f_add('t4', 'g1_gen_x', 'g1_gen_y') -}}
+    {{ emit_f_mul('t3', 't3', 't4') -}}
+    {{ emit_f_add('t4', 't0', 't1') -}}
+    {{ emit_f_sub('t3', 't3', 't4') -}}
+    {{ emit_f_add('t4', 'y', 'z') -}}
+    {{ emit_f_add('output_temp_x', 'g1_gen_y', 'g1_gen_z') -}}
+    {{ emit_f_mul('t4', 't4', 'output_temp_x') -}}
+    {{ emit_f_add('output_temp_x', 't1', 't2') -}}
+    {{ emit_f_sub('t4', 't4', 'output_temp_x') -}}
+    {{ emit_f_add('output_temp_x', 'x', 'z') -}}
+    {{ emit_f_add('output_temp_y', 'g1_gen_x', 'g1_gen_z') -}}
+    {{ emit_f_mul('output_temp_x', 'output_temp_x', 'output_temp_y') -}}
+    {{ emit_f_add('output_temp_y', 't0', 't2') -}}
+    {{ emit_f_sub('output_temp_y', 'output_temp_x', 'output_temp_y') -}}
+    {{ emit_f_add('output_temp_x', 't0', 't0') -}}
+    {{ emit_f_add('t0', 'output_temp_x', 't0') -}}
+    {{ emit_f_mul('t2', 't2', 'VAL_12') -}}
+    {{ emit_f_add('output_temp_z', 't1', 't2') -}}
+    {{ emit_f_sub('t1', 't1', 't2') -}}
+    {{ emit_f_mul('output_temp_y', 'output_temp_y', 'VAL_12') -}}
+    {{ emit_f_mul('output_temp_x', 't4', 'output_temp_y') -}}
+    {{ emit_f_mul('t2', 't3', 't1') -}}
+    {{ emit_f_sub('x', 't2', 'output_temp_x') -}}
+    {{ emit_f_mul('output_temp_y', 'output_temp_y', 't0') -}}
+    {{ emit_f_mul('t1', 't1', 'output_temp_z') -}}
+    {{ emit_f_add('y', 't1', 'output_temp_y') -}}
+    {{ emit_f_mul('t0', 't0', 't3') -}}
+    {{ emit_f_mul('output_temp_z', 'output_temp_z', 't4') -}}
+    {{ emit_f_add('z', 'output_temp_z', 't0') -}}
+
+    // copy the result to x, y, z
+    {{ emit_f_copy('x', 'output_temp_x') -}}
+    {{ emit_f_copy('y', 'output_temp_y') -}}
+    {{ emit_f_copy('z', 'output_temp_z') -}}
+{{ end_block() -}}
+}

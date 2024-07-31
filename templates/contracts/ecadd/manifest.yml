@@ -1,0 +1,4 @@
+imports: invmod
+temporaries:
+    x:
+        type: field_element

@@ -1,6 +1,8 @@
 import sys
 import os
 import math
+import yaml
+
 from jinja2.nativetypes import NativeEnvironment
 
 def wrap_directive(template_state, fn):
@@ -505,6 +507,24 @@ class TemplateState:
                 res.append("mstore")
 
         return res
+
+def parse_manifests(target_name: str):
+	manifest = None
+	with open('templates/contracts/{}/manifest.yml'.format(target_name)) as f:
+		manifest = yaml.safe_load(f)
+
+	# first allocate our temporary values
+
+	# extract a relation tree of imports and the temporaries/inputs they use
+
+	# rank all modules by order of their deepest invocation
+
+	# starting at the top, recursively assign slot dependencies:
+	#  * the current module from first_open_slot -> last_temp_needed
+        #  * recurse into the direct dependencies, repeating this (breadth-first), 
+	import pdb; pdb.set_trace()
+
+parse_manifests('ecadd')
 
 def main():
     template_state = None
