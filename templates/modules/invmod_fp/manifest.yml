@@ -1,0 +1,10 @@
+imports: []
+inputs: 
+  x:
+    type: field_element
+outputs:
+temporaries:
+  t0: 
+    type: fp
+  t1: 
+    type: fp

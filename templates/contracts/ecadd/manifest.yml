@@ -1,4 +1,13 @@
-imports: invmod
+imports:
+- point_add
+- invmod_fp
 temporaries:
     x:
         type: field_element
+    y:
+        type: field_element
+    z:
+        type: field_element
+    modulus:
+        type: memory
+        size: 48

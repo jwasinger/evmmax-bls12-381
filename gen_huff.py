@@ -37,10 +37,7 @@ class TemplateState:
         self.outputs = {}
 
         self.free_slot = 0
-        self.evmmax_slot_size = 48 # hardcode to bls for now
-        self.allocs = {}
-        self.mem_allocs = {}
-        self.free_mem = 0
+        self.field_width = 48 # hardcode to bls for now
         self.indent_lvl = 0
         self.indent_size = 4
 
@@ -61,7 +58,7 @@ class TemplateState:
             'alloc_mem': wrap_directive(self, self.alloc_mem),
             'emit_load_items': wrap_emit(self, self.emit_load_items),
             'emit_f_copy': wrap_emit(self, self.emit_f_copy),
-            'emit_mulmontx': wrap_emit(self, self.emit_mulmontx),
+            'emit_mulmodx': wrap_emit(self, self.emit_mulmodx),
             'emit_f_mul': wrap_emit(self, self.emit_f_mul),
             'emit_f_sqr': wrap_emit(self, self.emit_f_sqr),
             'emit_f_add': wrap_emit(self, self.emit_f_add),
@@ -73,80 +70,14 @@ class TemplateState:
             'emit_set_val_12': wrap_emit(self, self.emit_set_val_12),
             'emit_store_constant_32byte_aligned': wrap_emit(self, self.emit_store_constant_32byte_aligned),
             'emit_check_val_nonzero': wrap_emit(self, self.emit_check_val_nonzero),
-            'emit_evmmax_store_inputs': wrap_emit(self, self.emit_evmmax_store_inputs),
-            'emit_evmmax_load_outputs': wrap_emit(self, self.emit_evmmax_load_outputs),
-            'emit_evmmax_load_val': wrap_emit(self, self.emit_evmmax_load_val),
+            'emit_storex_inputs': wrap_emit(self, self.emit_storex_inputs),
+            'emit_loadx_outputs': wrap_emit(self, self.emit_loadx_outputs),
+            'emit_loadx_val': wrap_emit(self, self.emit_loadx_val),
             'emit_slots_used': wrap_emit(self, self.emit_slots_used),
             'emit_slot': wrap_emit(self, self.emit_slot)
         }
 
-    def get_outputs_start_idx(self):
-        return min([idx for _, idx in self.outputs.items()])
-
-    def alloc_range(self, symbol, count):
-        if symbol in self.allocs:
-            raise Exception("symobol already allocated {}".format(symbol))
-
-        self.inputs_done = True
-        self.outputs_done = True
-
-        self.allocs[symbol] = self.free_slot
-        self.free_slot += count * self.item_size
-
-    def alloc_output_val(self, symbol):
-        self.inputs_done = True
-
-        if self.outputs_done:
-            raise Exception("output values must be allocated before other memory values")
-
-        self.outputs[symbol] = self.free_slot
-        self.allocs[symbol] = self.free_slot
-        self.mem_allocs[symbol] = self.free_mem
-
-        self.output_val_count += 1
-
-        self.free_mem += 48
-        self.free_slot += 1
-
-    def alloc_output_f(self, symbol):
-        self.inputs_done = True
-
-        if self.outputs_done:
-            raise Exception("output values must be allocated before other memory values")
-
-        self.outputs[symbol] = self.free_slot
-        self.allocs[symbol] = self.free_slot
-        self.mem_allocs[symbol] = self.free_mem
-
-        self.output_val_count += self.item_size
-
-        self.free_mem += self.item_size * 48
-        self.free_slot += self.item_size
-
-    def alloc_input_val(self, symbol):
-        if self.inputs_done:
-            raise Exception("input values must be allocated before other memory value")
-        self.inputs[symbol] = self.free_slot
-        self.inputs_count += 1
-
-        self.mem_allocs[symbol] = self.free_mem
-        self.allocs[symbol] = self.free_slot
-        self.free_slot += 1
-        self.free_mem += 48
-
-    def alloc_input_f(self, symbol):
-        if self.inputs_done:
-            raise Exception("input values must be allocated before other memory value")
-
-        self.inputs[symbol] = self.free_slot
-        self.inputs_count += self.item_size
-
-        self.mem_allocs[symbol] = self.free_mem
-        self.allocs[symbol] = self.free_slot
-        self.free_slot += self.item_size
-        self.free_mem += self.item_size * 48
-
-    def emit_evmmax_store_inputs(self):
+    def emit_storex_inputs(self):
         res = [
            hex(self.inputs_count),
            '0x0', # inputs always start at offset 0 in memory 
@@ -155,7 +86,7 @@ class TemplateState:
         ]
         return res
 
-    def emit_evmmax_load_outputs(self):
+    def emit_loadx_outputs(self):
         res = [
            hex(self.output_val_count),
            hex(self.get_outputs_start_idx()),
@@ -164,7 +95,7 @@ class TemplateState:
         ]
         return res
 
-    def emit_evmmax_load_val(self, output_symbol, symbol):
+    def emit_loadx_val(self, output_symbol, symbol):
         output_offset = self.mem_allocs[output_symbol]
         val_idx = self.allocs[symbol]
         res = [
@@ -189,26 +120,6 @@ class TemplateState:
 
     def emit_mem_offset(self, symbol, offset=0):
         return [hex(self.mem_allocs[symbol] + offset)]
-
-    def alloc_f(self, symbol):
-        if symbol in self.allocs:
-            raise Exception("symobol already allocated {}".format(symbol))
-
-        if symbol in self.inputs:
-            raise Exception("symobol already allocated as input {}".format(symbol))
-
-        self.allocs[symbol] = self.free_slot
-        self.free_slot += self.item_size
-
-    def alloc_val(self, symbol):
-        if symbol in self.allocs:
-            raise Exception("symobol already allocated {}".format(symbol))
-
-        if symbol in self.inputs:
-            raise Exception("symobol already allocated as input {}".format(symbol))
-
-        self.allocs[symbol] = self.free_slot
-        self.free_slot += 1
 
     def emit_slot(self, symbol):
         return [hex(self.allocs[symbol])]
@@ -271,7 +182,7 @@ class TemplateState:
         else:
             return self.emit_fp2_set_zero(out)
 
-    def __emit_mulmontx(self, out_slot, x_slot, y_slot):
+    def __emit_mulmodx(self, out_slot, x_slot, y_slot):
         return "__mulmontx(s{},s{},s{})".format(out_slot, x_slot, y_slot)
 
     def __emit_addmodx(self, out_slot, x_slot, y_slot):
@@ -280,11 +191,11 @@ class TemplateState:
     def __emit_submodx(self, out_slot, x_slot, y_slot):
         return "__submodx(s{},s{},s{})".format(out_slot, x_slot, y_slot)
 
-    def emit_mulmontx(self, out, x, y):
+    def emit_mulmodx(self, out, x, y):
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
-        return [self.__emit_mulmontx(out_slot, x_slot, y_slot)]
+        return [self.__emit_mulmodx(out_slot, x_slot, y_slot)]
 
     def emit_addmodx(self, out, x, y):
         out_slot = self.allocs[out]
@@ -342,9 +253,9 @@ class TemplateState:
             # out[0] <- (x[0] + x[1]) * (x[0] - x[1])
             self.__emit_addmodx(out_slot_1, x_slot_0, x_slot_1),
             self.__emit_submodx(out_slot_0, x_slot_0, x_slot_1),
-            self.__emit_mulmontx(out_slot_0, out_slot_0, out_slot_1),
+            self.__emit_mulmodx(out_slot_0, out_slot_0, out_slot_1),
             # out[1] <- 2 * x[0] * x[1]
-            self.__emit_mulmontx(out_slot_1, x_slot_0, x_slot_1),
+            self.__emit_mulmodx(out_slot_1, x_slot_0, x_slot_1),
             self.__emit_addmodx(out_slot_1, out_slot_1, out_slot_1)
         ]
         return res
@@ -366,10 +277,10 @@ class TemplateState:
             # out[0] <- x[0] * y[0] - x[1] * y[1]
             # out[1] <- x[0] * y[1] + x[1] * y[0]
 
-            self.__emit_mulmontx(t0, x_slot_0, y_slot_0),
-            self.__emit_mulmontx(t1, x_slot_1, y_slot_1),
-            self.__emit_mulmontx(t2, x_slot_0, y_slot_1),
-            self.__emit_mulmontx(t3, x_slot_1, y_slot_0),
+            self.__emit_mulmodx(t0, x_slot_0, y_slot_0),
+            self.__emit_mulmodx(t1, x_slot_1, y_slot_1),
+            self.__emit_mulmodx(t2, x_slot_0, y_slot_1),
+            self.__emit_mulmodx(t3, x_slot_1, y_slot_0),
             self.__emit_submodx(out_slot_0, t0, t1),
             self.__emit_addmodx(out_slot_1, t2, t3)
         ]
@@ -383,13 +294,13 @@ class TemplateState:
 
     def emit_f_sqr(self, out, x):
         if self.item_size == 1:
-            return self.emit_mulmontx(out, x, x)
+            return self.emit_mulmodx(out, x, x)
         else:
             return self.emit_fp2_sqr(out, x)
 
     def emit_f_mul(self, out, x, y):
         if self.item_size == 1:
-            return self.emit_mulmontx(out, x, y)
+            return self.emit_mulmodx(out, x, y)
         else:
             return self.emit_fp2_mul(out, x, y)
 
@@ -452,7 +363,7 @@ class TemplateState:
             return self.__emit_check_fp2_nonzero(item)
 
     def emit_set_val_12_fq2(self, output):
-        output_offset = self.allocs[output] * self.evmmax_slot_size
+        output_offset = self.allocs[output] * self.field_width
         res = []
 
         res.append('0xc')
@@ -468,7 +379,7 @@ class TemplateState:
         return [] 
 
     def emit_set_val_12_fq(self, output):
-        output_offset = self.allocs[output] * self.evmmax_slot_size
+        output_offset = self.allocs[output] * self.field_width
         res = []
 
         res.append('0xc')
@@ -508,21 +419,114 @@ class TemplateState:
 
         return res
 
+def load_module_manifest(target_name: str):
+    return load_manifest(target_name, 'modules')
+
+def load_contract_manifest(target_name: str):
+    return load_manifest(target_name, 'contracts')
+
+def load_manifest(target_name: str, target_parent_dir):
+    manifest = None
+    with open('templates/{}/{}/manifest.yml'.format(target_parent_dir, target_name)) as f:
+        manifest = yaml.safe_load(f)
+
+    return manifest
+
+def __load_dependencies(target_name, target_manifest, depth=0):
+    res = {}
+    for imp in target_manifest['imports']:
+        imp_manifest = load_module_manifest(imp)
+        deps = __load_dependencies(imp, imp_manifest, depth+1)
+        for dep_name, dep in deps.items():
+            if not dep_name in res:
+                res[dep_name] = dep
+
+    target_manifest['depth'] = depth
+    res[target_name] = target_manifest
+    return res
+
+def load_dependencies(target_name, manifest):
+    return __load_dependencies(target_name, manifest)
+
+def allocate_dep_alloc_space(cur_free_mem, cur_free_slot, dep):
+    temporaries = dep['temporaries']
+    if len(set(temporaries.keys())) != len(temporaries):
+        raise Exception("duplicate local temp variable declaration")
+
+    offsets = {}
+    mem_offsets = {}
+
+    for temp_name, temp_info in temporaries.items():
+        if temp_info['type'] == 'memory':
+            mem_offsets[temp_name] = cur_free_mem
+            cur_free_mem += temp_info['size']
+            continue
+
+        if temp_info['type'] == 'fp':
+            size = 1
+        elif temp_info['type'] == 'field_element':
+            size = 1 # hard-coded to G1 for now
+        offsets[temp_name] = cur_free_slot + size
+        cur_free_slot += size
+
+    return offsets, cur_free_slot, mem_offsets, cur_free_mem
+    
+def allocate_alloc_space(deps):
+    free_slot = 0
+    free_mem = 0
+    res = {}
+    for dep_name, dep in deps:
+        dep_alloc, free_slot, mem_offsets, free_mem = allocate_dep_alloc_space(free_mem, free_slot, dep)
+        res[dep_name] = {
+            'slots': dep_alloc,
+            'memory': mem_offsets,
+        }
+
+    return res
+
+def build_template(target_name, deps, is_contract: bool):
+    template_state = TemplateState()
+
+    env = NativeEnvironment()
+
+    if is_contract:
+        template_path = os.path.join(os.getcwd(), "contracts", target_name)
+    else:
+        template_path = os.path.join(os.getcwd(), "modules", target_name)
+
+    template_content = ""
+    with open(template_name) as f:
+        template_content = f.read()
+
+    t = env.from_string(template_content)
+    t.globals.update(template_state.get_stdlib())
+    result = t.render()
+
+
+
+def build_templates(deps):
+    build_order = reversed(sorted(deps.items(), key=lambda x: x[1]['depth']))
+    build_order = map(lambda x: x[0], build_order)
+
+    import pdb; pdb.set_trace()
+
+
 def parse_manifests(target_name: str):
-	manifest = None
-	with open('templates/contracts/{}/manifest.yml'.format(target_name)) as f:
-		manifest = yaml.safe_load(f)
+    manifest = load_contract_manifest(target_name)
+    deps = load_dependencies(target_name, manifest)
 
-	# first allocate our temporary values
+    # rank all modules by order of their shallowest import
+    sorted_deps = sorted(deps.items(), key=lambda x: x[1]['depth'])
 
-	# extract a relation tree of imports and the temporaries/inputs they use
+    # TODO: for each depth of the same level, the temporary space should collide
+    allocs = allocate_alloc_space(sorted_deps)
 
-	# rank all modules by order of their deepest invocation
+    for target in deps.keys():
+      deps[target]['allocs'] = allocs[target]
 
-	# starting at the top, recursively assign slot dependencies:
-	#  * the current module from first_open_slot -> last_temp_needed
-        #  * recurse into the direct dependencies, repeating this (breadth-first), 
-	import pdb; pdb.set_trace()
+    build_templates(deps)
+
+
 
 parse_manifests('ecadd')
 
@@ -544,9 +548,7 @@ def main():
 
     exponent = 1
     exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
-    t = env.from_string(template_content)
-    t.globals.update(template_state.get_stdlib())
-    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits)
+
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)
