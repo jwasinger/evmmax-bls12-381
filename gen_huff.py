@@ -270,13 +270,13 @@ class TemplateState:
             return self.emit_fp2_set_zero(out)
 
     def __emit_mulmontx(self, out_slot, x_slot, y_slot):
-        return "__mulmontx(s{},s{},s{})".format(out_slot, x_slot, y_slot)
+        return "__mulmontx(s{},s1,s{},s1,s{},s1,s1)".format(out_slot, x_slot, y_slot)
 
     def __emit_addmodx(self, out_slot, x_slot, y_slot):
-        return "__addmodx(s{},s{},s{})".format(out_slot, x_slot, y_slot)
+        return "__addmodx(s{},s1,s{},s1,s{},s1,s1)".format(out_slot, x_slot, y_slot)
 
     def __emit_submodx(self, out_slot, x_slot, y_slot):
-        return "__submodx(s{},s{},s{})".format(out_slot, x_slot, y_slot)
+        return "__submodx(s{},s1,s{},s1,s{},s1,s1)".format(out_slot, x_slot, y_slot)
 
     def emit_mulmontx(self, out, x, y):
         out_slot = self.allocs[out]
