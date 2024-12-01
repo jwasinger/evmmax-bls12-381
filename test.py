@@ -29,7 +29,7 @@ def bench_geth(inp: str, code_file: str):
     geth_path = os.path.join(os.getcwd(), "go-ethereum/build/bin/evm")
 
     geth_exec = os.path.join(geth_path)
-    geth_cmd = "{} --codefile {} --input {} run".format(geth_exec, code_file, inp)
+    geth_cmd = "{} --prestate genesis.json --codefile {} --input {} run".format(geth_exec, code_file, inp)
     print(geth_cmd)
     result = subprocess.run(geth_cmd.split(' '), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if result.returncode != 0:
