@@ -5,12 +5,8 @@ from jinja2.nativetypes import NativeEnvironment
 
 def wrap_directive(template_state, fn):
         def wrapped(*args, **kwargs):
-            try:
-                fn(*args, **kwargs)
-                return ''
-            except Exception as e:
-                import pdb; pdb.set_trace()
-                foo = 'bar'
+            fn(*args, **kwargs)
+            return ''
         return wrapped
 
 def wrap_emit(template_state, fn):
@@ -18,32 +14,51 @@ def wrap_emit(template_state, fn):
         return template_state.emit_text(fn(*args, **kwargs))
     return wrapped
 
+# TemplateState represents the 
 class TemplateState:
     def __init__(self, g2=False):
         if g2:
-            self.item_size = 2
+            self.field_elt_size = 2
         else:
-            self.item_size = 1
+            self.field_elt_size = 1
 
+        # flags used during header parsing
         self.inputs_done = False
         self.outputs_done = False
+
+        # the next free register not assigned to an input symbol
         self.free_input_idx = 0
+
         self.inputs_count = 0
+
+        # map of symbol to the 1st virtual register in the range that it refers to
         self.inputs = {}
+
         self.output_val_count = 0
 
+        # map of symbol to the 1st virtual register in the range that it refers to
         self.outputs = {}
 
+        # the next free register not assigned to an input symbol
         self.free_slot = 0
+
+        # virtual register size in bytes, hardcoded to bls12381 base field for now
         self.evmmax_slot_size = 48 # hardcode to bls for now
+
+        # map of symbol to the 1st virtual register in the range that it refers to
         self.allocs = {}
+
+        # map of symbol name (input or output) to a memory offset.
+        # inputs are loaded from the specified offset.
+        # outputs are stored to the specified offset.
         self.mem_allocs = {}
         self.free_mem = 0
+
+        # these are for formatting the resulting Huff code for readability.
         self.indent_lvl = 0
         self.indent_size = 4
 
-        self.compiled_text = None
-
+    # get_stdlib returns a map of functions available to templates
     def get_stdlib(self):
         return {
             'alloc_range': wrap_directive(self, self.alloc_range),
@@ -57,7 +72,6 @@ class TemplateState:
             'ref_item': wrap_directive(self, self.ref_item),
             'alloc_f': wrap_directive(self, self.alloc_f),
             'alloc_mem': wrap_directive(self, self.alloc_mem),
-            'emit_load_items': wrap_emit(self, self.emit_load_items),
             'emit_f_copy': wrap_emit(self, self.emit_f_copy),
             'emit_mulmontx': wrap_emit(self, self.emit_mulmontx),
             'emit_f_mul': wrap_emit(self, self.emit_f_mul),
@@ -73,14 +87,14 @@ class TemplateState:
             'emit_check_val_nonzero': wrap_emit(self, self.emit_check_val_nonzero),
             'emit_evmmax_store_inputs': wrap_emit(self, self.emit_evmmax_store_inputs),
             'emit_evmmax_load_outputs': wrap_emit(self, self.emit_evmmax_load_outputs),
-            'emit_evmmax_load_val': wrap_emit(self, self.emit_evmmax_load_val),
-            'emit_slots_used': wrap_emit(self, self.emit_slots_used),
+            'emit_num_slots_used': wrap_emit(self, self.emit_num_slots_used),
             'emit_slot': wrap_emit(self, self.emit_slot)
         }
 
-    def get_outputs_start_idx(self):
+    def get_outputs_start_register(self):
         return min([idx for _, idx in self.outputs.items()])
 
+    # alloc_range allocates a range of register for internal value 'symbol' to own.
     def alloc_range(self, symbol, count):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
@@ -89,8 +103,9 @@ class TemplateState:
         self.outputs_done = True
 
         self.allocs[symbol] = self.free_slot
-        self.free_slot += count * self.item_size
+        self.free_slot += count * self.field_elt_size
 
+    # alloc_output_val allocates a single register for 'symbol' to own.
     def alloc_output_val(self, symbol):
         self.inputs_done = True
 
@@ -106,6 +121,9 @@ class TemplateState:
         self.free_mem += 48
         self.free_slot += 1
 
+    # allocate_output_f allocates one or more registers to hold an input field element.
+    # the size depends on whether the field in question is the base field or 
+    # an extension field (in the case of G2).
     def alloc_output_f(self, symbol):
         self.inputs_done = True
 
@@ -116,11 +134,13 @@ class TemplateState:
         self.allocs[symbol] = self.free_slot
         self.mem_allocs[symbol] = self.free_mem
 
-        self.output_val_count += self.item_size
+        self.output_val_count += self.field_elt_size
 
-        self.free_mem += self.item_size * 48
-        self.free_slot += self.item_size
+        self.free_mem += self.field_elt_size * 48
+        self.free_slot += self.field_elt_size
 
+    # alloc_input_val allocates a single virtual register associating it with 'symbol'
+    # in the symbol table.
     def alloc_input_val(self, symbol):
         if self.inputs_done:
             raise Exception("input values must be allocated before other memory value")
@@ -132,19 +152,24 @@ class TemplateState:
         self.free_slot += 1
         self.free_mem += 48
 
+    # allocate_input_f allocates one or more registers to hold an output field element.
+    # the size depends on whether the field in question is the base field or 
+    # an extension field (in the case of G2).
     def alloc_input_f(self, symbol):
         if self.inputs_done:
             raise Exception("input values must be allocated before other memory value")
 
         self.inputs[symbol] = self.free_slot
-        self.inputs_count += self.item_size
+        self.inputs_count += self.field_elt_size
 
         self.mem_allocs[symbol] = self.free_mem
         self.allocs[symbol] = self.free_slot
-        self.free_slot += self.item_size
-        self.free_mem += self.item_size * 48
+        self.free_slot += self.field_elt_size
+        self.free_mem += self.field_elt_size * 48
 
-    def emit_evmmax_store_inputs(self):
+    # emit_evmmax_store_inputs returns lines of Huff code to store all inputs into
+    # their assigned registers from EVM memory starting at offset 0.
+    def emit_evmmax_store_inputs(self) -> [str]:
         res = [
            hex(self.inputs_count),
            '0x0', # inputs always start at offset 0 in memory 
@@ -153,27 +178,19 @@ class TemplateState:
         ]
         return res
 
-    def emit_evmmax_load_outputs(self):
+    # emit_evmmax_load_outputs returns lines of Huff code to load all outputs from 
+    # their assigned registers into EVM memory.
+    def emit_evmmax_load_outputs(self) -> [str]:
+
         res = [
            hex(self.output_val_count),
-           hex(self.get_outputs_start_idx()),
-           hex(self.get_outputs_start_idx() * 48),
+           hex(self.get_outputs_start_register()),
+           hex(self.get_outputs_start_register() * 48),
            'loadx'
         ]
         return res
 
-    def emit_evmmax_load_val(self, output_symbol, symbol):
-        output_offset = self.mem_allocs[output_symbol]
-        val_idx = self.allocs[symbol]
-        res = [
-           hex(1),
-           hex(val_idx),
-           hex(output_offset),
-           '0x0',
-           'loadx'
-        ]
-        return res
-
+    # alloc_mem assigns a contiguous range of memory of size 'size' bytes to the symbol name.
     def alloc_mem(self, symbol, size):
         if symbol in self.mem_allocs:
             raise Exception("symbol already allocated in memory {}".format(symbol))
@@ -185,9 +202,14 @@ class TemplateState:
     def __emit_mem_offset(self, symbol, offset=0):
         return hex(self.mem_allocs[symbol] + offset)
 
-    def emit_mem_offset(self, symbol, offset=0):
+    # emit_mem_offset returns the hex literal of the first byte in the memory
+    # segment referenced by the symbol, with an optional offset to add to that
+    # value
+    def emit_mem_offset(self, symbol, offset=0) -> [str]:
         return [hex(self.mem_allocs[symbol] + offset)]
 
+    # alloc_f maps a symbol to the next available slot(s) (depending on whether g1/g2 is
+    # configured).  These will contain a field element.
     def alloc_f(self, symbol):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
@@ -196,8 +218,9 @@ class TemplateState:
             raise Exception("symobol already allocated as input {}".format(symbol))
 
         self.allocs[symbol] = self.free_slot
-        self.free_slot += self.item_size
+        self.free_slot += self.field_elt_size
 
+    # alloc_val maps a symbol to the next available free slot.
     def alloc_val(self, symbol):
         if symbol in self.allocs:
             raise Exception("symobol already allocated {}".format(symbol))
@@ -208,32 +231,46 @@ class TemplateState:
         self.allocs[symbol] = self.free_slot
         self.free_slot += 1
 
-    def emit_slot(self, symbol):
+    # emit_slot returns the first slot mapped to a symbol represented as
+    # an array containing a single hex-literal 
+    def emit_slot(self, symbol) -> [str]:
         return [hex(self.allocs[symbol])]
         
-    def emit_slots_used(self):
+    # emit_num_slots_used returns the amount of allocated slots in the symbol table 
+    # represented as an array containing a single string hex literal.
+    def emit_num_slots_used(self) -> [str]:
         return [hex(self.free_slot)]
 
-    def ref_item(self, new_name, existing_name):
+    # ref_item creates an alias to an existing symbol in the table, without
+    # allocating any new slots.
+    def ref_item(self, new_name: str, existing_name: str):
         old_slot = self.allocs[existing_name]
         self.allocs[new_name] = old_slot
 
+    # start_block should be called on the beginning of every Huff code block
+    # to ensure that template generation generates properly-indented code
     def start_block(self):
         self.indent_lvl += 1
 
+    # end_block should be called at the end of every Huff code block to ensure
+    # that template generation generations peroply-indented code.
     def end_block(self):
         if self.indent_lvl == 0:
             raise Exception("bad")
         self.indent_lvl -= 1
 
-    def emit_fp_set_one(self, out):
+    # emit_fp_set_one returns Huff code for a single call to 'addmodx' which 
+    # assigns the value 1 to the register corresponding to the symbol 'out'
+    def emit_fp_set_one(self, out: str) -> [str]:
         out_slot = self.allocs[out]
 
         return [
             self.__emit_addmodx(out_slot, self.allocs['ONE_VAL'], self.allocs['ZERO_VAL'])
         ]
 
-    def emit_fp2_set_one(self, out):
+    # emit_fp2_set_one returns huff code  to set the field extension element referenced by 
+    # symbol 'out' to one.
+    def emit_fp2_set_one(self, out: str) -> str:
         out_slot = self.allocs[out]
 
         return [
@@ -241,13 +278,17 @@ class TemplateState:
             self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
-    def emit_f_set_one(self, out):
-        if self.item_size == 1:
+    # emit_f_set_one returns Huff code to set a field element referenced by symbol 'out'
+    # to the value 1.
+    def emit_f_set_one(self, out: str) -> [str]:
+        if self.field_elt_size == 1:
             return self.emit_fp_set_one(out)
         else:
             return self.emit_fp2_set_one(out)
 
-    def emit_fp_set_zero(self, out):
+    # emit_f_set_zero returns Huff code to set a field element referenced by symbol 'out'
+    # to the value 1.
+    def emit_fp_set_zero(self, out) -> [str]:
         out_slot = self.allocs[out]
 
         return [
@@ -255,7 +296,9 @@ class TemplateState:
         ]
 
 
-    def emit_fp2_set_zero(self, out):
+    # emit_fp2_set_zero returns Huff code to set the field extension element referenced by 
+    # symbol 'out' to 0.
+    def emit_fp2_set_zero(self, out: str) -> [str]:
         out_slot = self.allocs[out]
 
         return [
@@ -263,8 +306,10 @@ class TemplateState:
             self.__emit_addmodx(out_slot + 1, self.allocs['ZERO_VAL'], self.allocs['ZERO_VAL'])
         ]
 
-    def emit_f_set_zero(self, out):
-        if self.item_size == 1:
+    # emit_f_set_one returns Huff code to set a field element referenced by symbol 'out'
+    # to the value 0.
+    def emit_f_set_zero(self, out: str) -> [str]:
+        if self.field_elt_size == 1:
             return self.emit_fp_set_zero(out)
         else:
             return self.emit_fp2_set_zero(out)
@@ -278,33 +323,48 @@ class TemplateState:
     def __emit_submodx(self, out_slot, x_slot, y_slot):
         return "__submodx(s{},s1,s{},s1,s{},s1,s1)".format(out_slot, x_slot, y_slot)
 
-    def emit_mulmontx(self, out, x, y):
+    # emit_mulmontx returns Huff code for a single call to the MULMODX opcode
+    # with inputs as virtual register indices.
+    # 
+    # stride and count inputs take the value 1.
+    def emit_mulmontx(self, out: int, x: int, y: int) -> [str]:
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
         return [self.__emit_mulmontx(out_slot, x_slot, y_slot)]
 
-    def emit_addmodx(self, out, x, y):
+    # emit_mulmontx returns Huff code for a single call to the ADDMODX opcode
+    # with inputs as virtual register indices.
+    # 
+    # stride and count inputs take the value 1.
+    def emit_addmodx(self, out: int, x: int, y: int) -> [str]:
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
         return [self.__emit_addmodx(out_slot, x_slot, y_slot)]
 
-    def emit_submodx(self, out, x, y):
+    # emit_mulmontx returns Huff code for a single call to the SUBMODX opcode
+    # with inputs as virtual register indices.
+    # 
+    # stride and count inputs take the value 1.
+    def emit_submodx(self, out: int, x: int, y: int) -> [str]:
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
         return [self.__emit_submodx(out_slot, x_slot, y_slot)]
 
-    def emit_f_copy(self, output_item, input_item):
+    # emit_f_copy returns the Huff code necessary to copy a field element
+    # from from the register(s) referenced by input_item to those referenced
+    # by output_item.  The inputs and outputs cannot overlap.
+    def emit_f_copy(self, output_item: str, input_item: str):
         output_item_slot = self.allocs[output_item]
         input_item_slot = self.allocs[input_item]
         res = []
-        for i in range(self.item_size):
+        for i in range(self.field_elt_size):
             res.append(self.__emit_addmodx(output_item_slot + i, input_item_slot + i, self.allocs['ZERO_VAL']))
         return res
 
-    def emit_fp2_add(self, out, x, y):
+    def emit_fp2_add(self, out: str, x: str, y: str) -> [str]:
         out_slot = self.allocs[out]
         x_slot = self.allocs[x]
         y_slot = self.allocs[y]
@@ -374,30 +434,31 @@ class TemplateState:
         return res
 
     def emit_f_add(self, out, x, y):
-        if self.item_size == 1:
+        if self.field_elt_size == 1:
             return self.emit_addmodx(out, x, y)
         else:
             return self.emit_fp2_add(out, x, y)
 
     def emit_f_sqr(self, out, x):
-        if self.item_size == 1:
+        if self.field_elt_size == 1:
             return self.emit_mulmontx(out, x, x)
         else:
             return self.emit_fp2_sqr(out, x)
 
     def emit_f_mul(self, out, x, y):
-        if self.item_size == 1:
+        if self.field_elt_size == 1:
             return self.emit_mulmontx(out, x, y)
         else:
             return self.emit_fp2_mul(out, x, y)
 
     def emit_f_sub(self, out, x, y):
-        if self.item_size == 1:
+        if self.field_elt_size == 1:
             return self.emit_submodx(out, x, y)
         else:
             return self.emit_fp2_sub(out, x, y)
 
-    def emit_text(self, items):
+    # emit_text takes a set of lines of Huff code and outputs them as a single string.
+    def emit_text(self, items: [str]) -> str:
         res = []
         for i, item in enumerate(items):
             if i == 0:
@@ -443,12 +504,16 @@ class TemplateState:
 
         return res
 
-    def emit_check_val_nonzero(self, item):
-        if self.item_size == 1:
+    # emit_check_val returns huff code to check whether an field element
+    # referenced by a symbol is nonzero
+    def emit_check_val_nonzero(self, item: str) -> [str]:
+        if self.field_elt_size == 1:
             return self.__emit_check_fp_nonzero(item)
         else:
             return self.__emit_check_fp2_nonzero(item)
 
+    # emit_set_val_12_fq2 returns Huff code to set the extension field element
+    # referenced by the symbol 'output' to 12.
     def emit_set_val_12_fq2(self, output):
         output_offset = self.allocs[output] * self.evmmax_slot_size
         res = []
@@ -462,9 +527,8 @@ class TemplateState:
 
         return res
 
-    def emit_load_items(self):
-        return [] 
-
+    # emit_set_val_12_fq2 returns Huff code to set the non-extension field element
+    # referenced by the symbol 'output' to 12.
     def emit_set_val_12_fq(self, output):
         output_offset = self.allocs[output] * self.evmmax_slot_size
         res = []
@@ -475,14 +539,19 @@ class TemplateState:
 
         return res
 
+    # emit_set_val_12_fq2 returns Huff code to set the field element
+    # referenced by the symbol 'output' to 12.
     def emit_set_val_12(self, output):
-        if self.item_size == 1:
+        if self.field_elt_size == 1:
             return self.emit_set_val_12_fq(output)
         else:
             return self.emit_set_val_12_fq2(output)
 
-    # TODO change name to store_constant_at_slot_offset or something similar
-    def emit_store_constant_32byte_aligned(self, output, val):
+    # emit_store_constant_32byte_aligned returns the huff code to store a literal unsigned integer
+    # value starting at the memory offset referenced by symbol 'output',
+    # padding the memory written to be 32byte-aligned:  padding the start of the output offset with
+    # zeroes.
+    def emit_store_constant_32byte_aligned(self, output: str, val: int) -> [str]:
         output_offset = self.mem_allocs[output]
         res = []
         val_hex = hex(val)[2:]
@@ -522,11 +591,9 @@ def main():
     with open(os.path.join(os.getcwd(),sys.argv[1])) as f:
         template_content = f.read()
 
-    exponent = 1
-    exponent_bits = [int(digit) for digit in bin(exponent)[2:]]
     t = env.from_string(template_content)
     t.globals.update(template_state.get_stdlib())
-    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.item_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.item_size * 48 * 3), exponent_bits=exponent_bits)
+    result = t.render(EVMMAX_VAL_SIZE=hex(48), AFFINE_POINT_SIZE=hex(template_state.field_elt_size * 48 * 2), PROJ_POINT_SIZE=hex(template_state.field_elt_size * 48 * 3))
 
     with open(os.path.join(os.getcwd(), sys.argv[2]), 'w') as f:
         f.write(result)

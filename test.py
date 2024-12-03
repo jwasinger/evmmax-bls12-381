@@ -1,6 +1,6 @@
 import os, subprocess
 
-from bls12_381 import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
+from bls12_381_ref_impl import g1_gen, g2_gen, SUBGROUP_ORDER, fq_mod, fq_inv, fq_mul, fq_mod, to_norm, to_mont, g2_point_from_raw, fq2_inv, fq2_mul, G2ProjPoint, G2AffinePoint, g2_gen_affine
 
 def pad_input(val):
     if len(hex(val)) - 2 > 96:

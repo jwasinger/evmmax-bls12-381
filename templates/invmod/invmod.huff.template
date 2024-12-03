@@ -658,7 +658,7 @@
 
     {{ emit_store_constant_32byte_aligned('MODULUS', 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab) }}
 
-    {{ emit_slots_used() }}
+    {{ emit_num_slots_used() }}
     0x30
     {{ emit_mem_offset('MODULUS') -}}
     0x00
